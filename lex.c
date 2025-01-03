@@ -283,7 +283,8 @@ int isKeyword(char *lexeme, char ch, int *type, FILE *file) {
                 lexeme[i + 2] == 'e' && 
                 lexeme[i + 3] == 'g' && 
                 lexeme[i + 4] == 'i' && 
-                lexeme[i + 5] == 'n') {
+                lexeme[i + 5] == 'n' &&
+                lexeme[i + 6] == '\0') {
                 *type = BEEGIN_TOKEN;
                 return 1;  // Matched 'beegin'
             }
@@ -293,7 +294,8 @@ int isKeyword(char *lexeme, char ch, int *type, FILE *file) {
                 lexeme[i + 3] == 'g' && 
                 lexeme[i + 4] == 'o' &&
                 lexeme[i + 5] == 'n' &&
-                lexeme[i + 6] == 'e'){
+                lexeme[i + 6] == 'e'&&
+                lexeme[i + 7] == '\0'){
                 *type = BEEGONE_TOKEN;
                 return 1; //matched 'beegone'
             }
@@ -303,14 +305,16 @@ int isKeyword(char *lexeme, char ch, int *type, FILE *file) {
                 lexeme[i + 3] == 'z' && 
                 lexeme[i + 4] == 'o' &&
                 lexeme[i + 5] == 'u' &&
-                lexeme[i + 6] == 't') {
+                lexeme[i + 6] == 't'&&
+                lexeme[i + 7] == '\0') {
                 *type = BUZZOUT_TOKEN;
             	return 1;  // Matched 'buzzout'
             }
             else if (i + 3 < strlen(lexeme) &&
                 lexeme[i + 1] == 'u' && 
                 lexeme[i + 2] == 'z' && 
-                lexeme[i + 3] == 'z') {
+                lexeme[i + 3] == 'z'&&
+                lexeme[i + 4] == '\0') {
                 *type = BUZZ_TOKEN;
                 return 1;  // Matched 'buzz'
             }
@@ -320,7 +324,8 @@ int isKeyword(char *lexeme, char ch, int *type, FILE *file) {
             if (i + 3 < strlen(lexeme) &&
                 lexeme[i + 1] == 'a' && 
                 lexeme[i + 2] == 's' && 
-                lexeme[i + 3] == 'e') {
+                lexeme[i + 3] == 'e'&&
+                lexeme[i + 4] == '\0') {
                 *type = CASE_TOKEN;
                 return 1;  // Matched 'case'
             }
@@ -332,12 +337,14 @@ int isKeyword(char *lexeme, char ch, int *type, FILE *file) {
                 lexeme[i + 2] == 'w' && 
                 lexeme[i + 3] == 'n' && 
                 lexeme[i + 4] == 't' && 
-                lexeme[i + 5] == 'o') {
+                lexeme[i + 5] == 'o'&&
+                lexeme[i + 6] == '\0') {
                 *type = DOWNTO_TOKEN;
                 return 1;  // Matched 'downto'
             } 
             else if (i + 1 < strlen(lexeme) && 
-                lexeme[i + 1] == 'o') {
+                lexeme[i + 1] == 'o'&&
+                lexeme[i + 2] == '\0') {
                 *type = DO_TOKEN;
                 return 1;  // Matched 'do'
             }
@@ -349,14 +356,16 @@ int isKeyword(char *lexeme, char ch, int *type, FILE *file) {
                 lexeme[i + 2] == 's' && 
                 lexeme[i + 3] == 'e' &&
                 lexeme[i + 4] == 'i' && 
-                lexeme[i + 5] == 'f') {
+                lexeme[i + 5] == 'f'&&
+                lexeme[i + 6] == '\0') {
                 *type = ELSEIF_TOKEN;
                 return 1;  // Matched 'elseif'
             } 
             else if (i + 3 < strlen(lexeme) &&
                 lexeme[i + 1] == 'l' && 
                 lexeme[i + 2] == 's' && 
-                lexeme[i + 3] == 'e') {
+                lexeme[i + 3] == 'e'&&
+                lexeme[i + 4] == '\0') {
                 *type = ELSE_TOKEN;
                 return 1;  // Matched 'else'
             }
@@ -365,7 +374,8 @@ int isKeyword(char *lexeme, char ch, int *type, FILE *file) {
         case 'f':  // Start with 'f' for the keyword 'for'
             if (i + 2 < strlen(lexeme) &&
                 lexeme[i + 1] == 'o' && 
-                lexeme[i + 2] == 'r') {
+                lexeme[i + 2] == 'r'&&
+                lexeme[i + 3] == '\0') {
                 *type = FOR_TOKEN;
                 return 1;  // Matched 'for'
             }
@@ -377,7 +387,8 @@ int isKeyword(char *lexeme, char ch, int *type, FILE *file) {
                 lexeme[i + 2] == 't' && 
                 lexeme[i + 3] == 'h' && 
                 lexeme[i + 4] == 'e' && 
-                lexeme[i + 5] == 'r') {
+                lexeme[i + 5] == 'r'&&
+                lexeme[i + 6] == '\0') {
                 *type = GATHER_TOKEN;
                 return 1;  // Matched 'gather'
             }
@@ -387,7 +398,8 @@ int isKeyword(char *lexeme, char ch, int *type, FILE *file) {
             if (i + 3 < strlen(lexeme) &&
                 lexeme[i + 1] == 'i' && 
                 lexeme[i + 2] == 'v' && 
-                lexeme[i + 3] == 'e') {
+                lexeme[i + 3] == 'e'&&
+                lexeme[i + 4] == '\0') {
                 *type = HIVE_TOKEN;
                 return 1;  // Matched 'hive'
            }
@@ -395,7 +407,8 @@ int isKeyword(char *lexeme, char ch, int *type, FILE *file) {
                 lexeme[i + 1] == 'o' &&
                 lexeme[i + 2] == 'v' &&
                 lexeme[i + 3] == 'e' &&
-                lexeme[i + 4] == 'r') {
+                lexeme[i + 4] == 'r' &&
+                lexeme[i + 5] == '\0') {
                 *type = HOVER_TOKEN;
                 return 1; //matched hover
             }
@@ -403,12 +416,14 @@ int isKeyword(char *lexeme, char ch, int *type, FILE *file) {
 
         case 'i':  // Start with 'i' for the keyword 'if' or 'is'
             if (i + 1 < strlen(lexeme) && 
-                lexeme[i + 1] == 'f') {
+                lexeme[i + 1] == 'f' &&
+                lexeme[i + 2] == '\0') {
                 *type = IF_TOKEN;
                 return 1;  // Matched 'if'
             }
             else if (i + 1 < strlen(lexeme) && 
-                lexeme[i + 1] == 's') {
+                lexeme[i + 1] == 's' &&
+                lexeme[i + 2] == '\0') {
                 *type = IS_TOKEN;
                 return 1;  // Matched 'is'
             }
@@ -422,7 +437,8 @@ int isKeyword(char *lexeme, char ch, int *type, FILE *file) {
                 lexeme[i + 4] == 'n' && 
                 lexeme[i + 5] == 'b' && 
                 lexeme[i + 6] == 'e' && 
-                lexeme[i + 7] == 'e') {
+                lexeme[i + 7] == 'e' &&
+                lexeme[i + 8] == '\0') {
                 *type = QUEENBEE_TOKEN;
                 return 1;  // Matched 'queenbee'
             }
@@ -435,7 +451,8 @@ int isKeyword(char *lexeme, char ch, int *type, FILE *file) {
                 lexeme[i + 3] == 'u' && 
                 lexeme[i + 4] == 'r' && 
                 lexeme[i + 5] == 'n' && 
-                lexeme[i + 6] == 's') {
+                lexeme[i + 6] == 's' &&
+                lexeme[i + 7] == '\0') {
                 *type = RETURNS_TOKEN;
                 return 1;  // Matched 'returns'
             }
@@ -445,7 +462,8 @@ int isKeyword(char *lexeme, char ch, int *type, FILE *file) {
             if (i + 3 < strlen(lexeme) &&
                 lexeme[i + 1] == 'i' && 
                 lexeme[i + 2] == 'z' && 
-                lexeme[i + 3] == 'e') {
+                lexeme[i + 3] == 'e' &&
+                lexeme[i + 4] == '\0') {
                 *type = SIZE_TOKEN;
                 return 1;  // Matched 'size'
             }
@@ -453,7 +471,8 @@ int isKeyword(char *lexeme, char ch, int *type, FILE *file) {
                 lexeme[i + 1] == 't' && 
                 lexeme[i + 2] == 'i' && 
                 lexeme[i + 3] == 'n' && 
-                lexeme[i + 4] == 'g') {
+                lexeme[i + 4] == 'g' &&
+                lexeme[i + 5] == '\0') {
                 *type = STING_TOKEN;
                 return 1;  // Matched 'sting'
             }
@@ -462,7 +481,8 @@ int isKeyword(char *lexeme, char ch, int *type, FILE *file) {
                 lexeme[i + 2] == 'i' && 
                 lexeme[i + 3] == 't' && 
                 lexeme[i + 4] == 'c' && 
-                lexeme[i + 5] == 'h') {
+                lexeme[i + 5] == 'h' &&
+                lexeme[i + 6] == '\0') {
                 *type = SWITCH_TOKEN;
                 return 1;  // Matched 'switch'
             }
@@ -472,7 +492,8 @@ int isKeyword(char *lexeme, char ch, int *type, FILE *file) {
             if (i + 3 < strlen(lexeme) &&
                 lexeme[i + 1] == 'h' && 
                 lexeme[i + 2] == 'i' && 
-                lexeme[i + 3] == 's') {
+                lexeme[i + 3] == 's' &&
+                lexeme[i + 4] == '\0') {
                 *type = THIS_TOKEN;
                 return 1;  // Matched 'this'
             }
@@ -482,7 +503,8 @@ int isKeyword(char *lexeme, char ch, int *type, FILE *file) {
             if (i + 3 < strlen(lexeme) &&
                 lexeme[i + 1] == 'p' && 
                 lexeme[i + 2] == 't' && 
-                lexeme[i + 3] == 'o') {
+                lexeme[i + 3] == 'o' &&
+                lexeme[i + 4] == '\0') {
                 *type = UPTO_TOKEN;
                 return 1;  // Matched 'upto'
             }
@@ -493,7 +515,8 @@ int isKeyword(char *lexeme, char ch, int *type, FILE *file) {
                 lexeme[i + 1] == 'h' && 
                 lexeme[i + 2] == 'i' && 
                 lexeme[i + 3] == 'l' && 
-                lexeme[i + 4] == 'e') {
+                lexeme[i + 4] == 'e' &&
+                lexeme[i + 5] == '\0') {
                 *type = WHILE_TOKEN;
                 return 1;  // Matched 'while'
             }
@@ -513,7 +536,8 @@ int isReservedWord(char *lexeme, char ch, int *type, FILE *file) {
             if (i + 3 < strlen(lexeme) &&
                 lexeme[i + 1] == 'o' &&
                 lexeme[i + 2] == 'o' &&
-                lexeme[i + 3] == 'l') {
+                lexeme[i + 3] == 'l' &&
+                lexeme[i + 4] == '\0') {
                 *type = BOOL_TOKEN;
                 return 1; //matched bool
             }
@@ -523,24 +547,27 @@ int isReservedWord(char *lexeme, char ch, int *type, FILE *file) {
             if (i + 3 < strlen(lexeme) &&
                 lexeme[i + 1] == 'h' &&
                 lexeme[i + 2] == 'a' &&
-                lexeme[i + 3] == 'r') {
+                lexeme[i + 3] == 'r' &&
+                lexeme[i + 4] == '\0') {
                 *type = CHAR_TOKEN;
                 return 1; //matched char
             }
             else if (i + 3 < strlen(lexeme) &&
-                    lexeme[i + 1] == 'h' &&
-                    lexeme[i + 2] == 'a' &&
-                    lexeme[i + 3] == 'i' &&
-                    lexeme[i + 4] == 'n' ) {
-                    *type = CHAIN_TOKEN;
-                    return 1; //matched chain
-                    }
+                lexeme[i + 1] == 'h' &&
+                lexeme[i + 2] == 'a' &&
+                lexeme[i + 3] == 'i' &&
+                lexeme[i + 4] == 'n' &&
+                lexeme[i + 5] == '\0' ) {
+                *type = CHAIN_TOKEN;
+                return 1; //matched chain
+                }
             break;
             
         case 'i':
             if (i + 2 < strlen(lexeme) &&
                 lexeme[i + 1] == 'n' &&
-                lexeme[i + 2] == 't') {
+                lexeme[i + 2] == 't' &&
+                lexeme[i + 3] == '\0') {
                 *type = INT_TOKEN;
                 return 1; //matched int
             }
@@ -551,25 +578,28 @@ int isReservedWord(char *lexeme, char ch, int *type, FILE *file) {
                 lexeme[i + 1] == 'l' &&
                 lexeme[i + 2] == 'o' &&
                 lexeme[i + 3] == 'a' &&
-                lexeme[i + 4] == 't') {
+                lexeme[i + 4] == 't' &&
+                lexeme[i + 5] == '\0') {
                 *type = FLOAT_TOKEN;
                 return 1; //matched float
             }
             else if (i + 4 < strlen(lexeme) &&
-                    lexeme[i + 1] == 'a' &&
-                    lexeme[i + 2] == 'l' &&
-                    lexeme[i + 3] == 's' &&
-                    lexeme[i + 4] == 'e') {
-                    *type = FALSE_TOKEN;
-                    return 1;
-                    }
+                lexeme[i + 1] == 'a' &&
+                lexeme[i + 2] == 'l' &&
+                lexeme[i + 3] == 's' &&
+                lexeme[i + 4] == 'e' &&
+                lexeme[i + 5] == '\0') {
+                *type = FALSE_TOKEN;
+                return 1;
+                }
             break;
 
         case 't':
             if(i + 3 < strlen(lexeme) &&
                 lexeme[i + 1] == 'r' &&
                 lexeme[i + 2] == 'u' &&
-                lexeme[i + 3] == 'e') {
+                lexeme[i + 3] == 'e' &&
+                lexeme[i + 4] == '\0') {
                 *type = TRUE_TOKEN;
                 return 1;
                 }
@@ -594,7 +624,8 @@ int isNoiseWord(char *lexeme, char ch, int *type, FILE *file) {
                 lexeme[i + 7] == 'a' &&
                 lexeme[i + 8] == 'l' &&
                 lexeme[i + 9] == 'u' &&
-                lexeme[i + 10] == 'e') {
+                lexeme[i + 10] == 'e' &&
+                lexeme[i + 11] == '\0') {
                 return 1; //matched returnvalue
             }
             break;
