@@ -14,15 +14,17 @@ typedef enum {
 	
 	// logical operators
 	AND, OR, NOT,
+
+	// unary operators
+	INCREMENT, DECREMENT,
 	
 	// delimiters
 	SEMICOLON, COMMA, LEFT_PAREN, RIGHT_PAREN, LEFT_BRACKET,
 	RIGHT_BRACKET, LEFT_BRACE, RIGHT_BRACE, DBL_QUOTE, SNGL_QUOTE,
 	
 	// keywords
-	BUZZ_TOKEN, BEEGIN_TOKEN, QUEENBEE_TOKEN, BEEGONE_TOKEN, FOR_TOKEN, THIS_TOKEN, 
-	IS_TOKEN, WHILE_TOKEN, DO_TOKEN, UPTO_TOKEN, DOWNTO_TOKEN, HIVE_TOKEN, 
-	SIZE_TOKEN, STING_TOKEN, IF_TOKEN, RETURNS_TOKEN, ELSEIF_TOKEN, ELSE_TOKEN, 
+	BUZZ_TOKEN, BEEGIN_TOKEN, QUEENBEE_TOKEN, BEEGONE_TOKEN, FOR_TOKEN, WHILE_TOKEN, 
+	DO_TOKEN, HIVE_TOKEN, STING_TOKEN, IF_TOKEN, RETURN_TOKEN, ELSEIF_TOKEN, ELSE_TOKEN, 
 	HOVER_TOKEN, GATHER_TOKEN, BUZZOUT_TOKEN, SWITCH_TOKEN, CASE_TOKEN, 
 
 	// reserved words
@@ -31,7 +33,9 @@ typedef enum {
 	// literals
 	INTEGER, FLOAT, STRING,
 	
+	COMMENT_BEGIN,
 	COMMENT,
+	COMMENT_END,
 	VAR_IDENT,
 	FUNC_IDENT,
 	NOISE_WORD,
@@ -43,14 +47,12 @@ typedef struct {
 	TokenType type;
 	char *value;
 	unsigned int line;
-	unsigned int column;
 } Token;
 
 Token *lex(FILE *file);
 int isNumLiteral(char *lexeme, char ch, int *type, FILE *file);
-int isKeyword(char *lexeme, char ch, int *type, FILE *file);
+int isKeyword(Token *token, Token *tokens, char *lexeme, char ch, int *type, FILE *file);
 int isReservedWord(char *lexeme, char ch, int *type, FILE *file);
-int isNoiseWord(char *lexeme, char ch, int *type, FILE *file);
 int isIdentifier(char *lexeme, char ch, int *type, FILE *file);
 int isDelimiter(char *lexeme, char ch, int *type, FILE *file);
 int isOperator(char *lexeme, char ch, int *type, FILE *file);
