@@ -20,18 +20,18 @@ typedef enum {
 	
 	// delimiters
 	SEMICOLON, COMMA, LEFT_PAREN, RIGHT_PAREN, LEFT_BRACKET,
-	RIGHT_BRACKET, LEFT_BRACE, RIGHT_BRACE, DBL_QUOTE, SNGL_QUOTE,
+	RIGHT_BRACKET, LEFT_BRACE, RIGHT_BRACE, DBL_QUOTE, SNGL_QUOTE, COLON,
 	
 	// keywords
 	BUZZ_TOKEN, BEEGIN_TOKEN, QUEENBEE_TOKEN, BEEGONE_TOKEN, FOR_TOKEN, WHILE_TOKEN, 
 	DO_TOKEN, HIVE_TOKEN, STING_TOKEN, IF_TOKEN, RETURN_TOKEN, ELSEIF_TOKEN, ELSE_TOKEN, 
-	HOVER_TOKEN, GATHER_TOKEN, BUZZOUT_TOKEN, SWITCH_TOKEN, CASE_TOKEN, 
+	HOVER_TOKEN, GATHER_TOKEN, BUZZOUT_TOKEN, SWITCH_TOKEN, CASE_TOKEN, DEFAULT_TOKEN,
 
 	// reserved words
 	CHAR_TOKEN, CHAIN_TOKEN, INT_TOKEN, FLOAT_TOKEN, BOOL_TOKEN, TRUE_TOKEN, FALSE_TOKEN, 
 
 	// literals
-	INTEGER, FLOAT, STRING,
+	INTEGER, FLOAT, STRING, CHARACTER,
 	
 	COMMENT_BEGIN,
 	COMMENT,
@@ -51,13 +51,14 @@ typedef struct {
 
 Token *lex(FILE *file);
 int isNumLiteral(char *lexeme, char ch, int *type, FILE *file);
-int isKeyword(Token *token, Token *tokens, char *lexeme, char ch, int *type, FILE *file);
-int isReservedWord(char *lexeme, char ch, int *type, FILE *file);
+int isKeyword(Token *token, Token *tokens, char *lexeme, char ch, int *type);
+int isReservedWord(char *lexeme, char ch, int *type);
 int isIdentifier(char *lexeme, char ch, int *type, FILE *file);
-int isDelimiter(char *lexeme, char ch, int *type, FILE *file);
+int isDelimiter(char ch, int *type);
 int isOperator(char *lexeme, char ch, int *type, FILE *file);
 char getNextChar(FILE *file);
 char getNonBlank(FILE *file);
 void storeToken(Token *token, Token *tokens, char *lexeme, int type);
+void reallocMemory(Token **tokens, int *number_of_tokens);
 
 #endif

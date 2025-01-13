@@ -2,7 +2,7 @@
 #myvariable6 fdf4
 #secretValue
 #adelina123
-#hello
+#hel-lo
 #123start
 #~cdddf
 #name%var
@@ -18,7 +18,7 @@
 /
 %
 ^
-DIV
+//
 
 =
 <
@@ -33,6 +33,9 @@ DIV
 !
 ||
 
+#a++
+--
+
 true
 false
 221
@@ -40,6 +43,7 @@ false
 3.5.5
 "string"
 "this is a string"
+'c'
 
 (
 )
@@ -49,6 +53,7 @@ false
 }
 '
 ;
+:
 ,
 
 <|comment:>
@@ -58,17 +63,12 @@ beegin
 queenbee
 beegone
 for
-this
-is
 while
 do
-upto
-downto
 hive
-size
 sting
 if
-returns 
+return
 elseif
 else
 hover
@@ -76,6 +76,7 @@ gather
 buzzout
 switch
 case
+default
 
 char
 chain
@@ -90,4 +91,3 @@ returnvalue
 if(#varA == #varB) {
    #a + #b = #c
 }
-

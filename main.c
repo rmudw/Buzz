@@ -4,7 +4,6 @@
 #include <ctype.h>
 
 #include "lex.h"
-#include "parser.h"
 
 const char* VALID_EXTENSION = ".bz";
 
@@ -19,7 +18,7 @@ void check_file_type(const char* filename, const char* expectedExtension) {
 
 int main() {
     const char *filename = "sc.bz";         // Hardcoded input file name
-    const char *outputfile = "symboltable.bz"; // Hardcoded output file name
+    const char *outputfile = "SymbolTable.bz"; // Hardcoded output file name
 
     // Check extensions
     check_file_type(filename, VALID_EXTENSION);
@@ -29,6 +28,16 @@ int main() {
     FILE *file = fopen(filename, "r");
     if (!file) {
         perror("Error: Unable to open input file");
+        return EXIT_FAILURE;
+    }
+
+    // Debug: Check input file size
+    fseek(file, 0, SEEK_END);
+    long file_size = ftell(file);
+    fseek(file, 0, SEEK_SET);
+    if (file_size == 0) {
+        fprintf(stderr, "Error: Input file is empty.\n");
+        fclose(file);
         return EXIT_FAILURE;
     }
 
@@ -45,7 +54,9 @@ int main() {
     //fclose(file);  // Close the input file after lexing
 
 	Token *tokens = lex(file);
-	
+	fclose(file);
+
+
 	int i = 0;
 	char *token_type[] = {
 		"ADDITION", "SUBTRACTION", "MULTIPLICATION", "DIVISION", 
@@ -57,15 +68,15 @@ int main() {
 		"AND", "OR", "NOT", "INCREMENT", "DECREMENT",
 
 		"SEMICOLON", "COMMA", "LEFT_PAREN", "RIGHT_PAREN", "LEFT_BRACKET",
-		"RIGHT_BRACKET", "LEFT_BRACE", "RIGHT_BRACE", "DBL_QUOTE", "SNGL_QUOTE",
+		"RIGHT_BRACKET", "LEFT_BRACE", "RIGHT_BRACE", "DBL_QUOTE", "SNGL_QUOTE", "COLON",
 
 		"BUZZ_TOKEN", "BEEGIN_TOKEN", "QUEENBEE_TOKEN", "BEEGONE_TOKEN", "FOR_TOKEN", "WHILE_TOKEN", "DO_TOKEN", 
 		"HIVE_TOKEN", "STING_TOKEN", "IF_TOKEN", "RETURN_TOKEN", "ELSEIF_TOKEN", "ELSE_TOKEN", 
-		"HOVER_TOKEN", "GATHER_TOKEN", "BUZZOUT_TOKEN", "SWITCH_TOKEN", "CASE_TOKEN",
+		"HOVER_TOKEN", "GATHER_TOKEN", "BUZZOUT_TOKEN", "SWITCH_TOKEN", "CASE_TOKEN", "DEFAULT_TOKEN",
 
 		"CHAR_TOKEN", "CHAIN_TOKEN", "INT_TOKEN", "FLOAT_TOKEN", "BOOL_TOKEN", "TRUE_TOKEN", "FALSE_TOKEN",
 
-		"INTEGER", "FLOAT", "STRING",
+		"INTEGER", "FLOAT", "STRING", "CHARACTER",
 
 		"COMMENT_BEGIN", "COMMENT", "COMMENT_END", "VAR_IDENT", "FUNC_IDENT", "NOISE_WORD", "INVALID", "END_OF_TOKENS"
 	};
@@ -88,7 +99,6 @@ int main() {
         return EXIT_FAILURE;
     }
 
-	fclose(file);
 	fclose(outputFile);
 	return 0;
 }

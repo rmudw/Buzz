@@ -1,8 +1,5 @@
 /* 
    To do:
-   Optimize code for STRING classification
-   File extension validation
-   Remove unused variables in functions
    Unterminated comments and strings (unsure if lexer or parser handles the error)
 */
 
@@ -30,33 +27,46 @@ Token *lex(FILE *file) {
 	// stores all tokens
 	int number_of_tokens = 12; // placeholder value for number of tokens
   	int tokens_size = 0;
-  	Token *tokens = malloc(sizeof(Token) * number_of_tokens); // array of all tokens in file
-  	
+    Token *tokens = malloc(sizeof(Token) * number_of_tokens); // array of all tokens in file
+  	if (!tokens) {
+        perror("Failed to allocate memory for tokens");
+        exit(EXIT_FAILURE);
+    }
+
 	// finds length of file
 	fseek(file, 0, SEEK_END);
     int length = ftell(file);
     fseek(file, 0, SEEK_SET);
 
 	char *lexeme = malloc(sizeof(char) * (length + 1));
-	char ch;
+	if (!lexeme) {
+        perror("Failed to allocate memory for lexeme");
+        free(tokens);
+        exit(EXIT_FAILURE);
+    }
+    
+    char ch;
 	
     while((ch = getNonBlank(file)) != EOF) {
     	lexeme[lexeme_index++] = ch; // builds lexeme by character
-    	
-    	Token *token = malloc(sizeof(Token));; // allocates memory for current token
-	    tokens_size++;
-	    
-	    if (tokens_size >= number_of_tokens) {
-            number_of_tokens *= 2; // double the capacity
-            Token *new_tokens = realloc(tokens, sizeof(Token) * number_of_tokens);
-            tokens = new_tokens;
+        
+    	Token *token = malloc(sizeof(Token)); // allocates memory for current token
+	    if (!token) {
+            perror("Failed to allocate memory for token");
+            free(tokens);
+            free(lexeme);
+            exit(EXIT_FAILURE);
         }
-		
+        tokens_size++;
+
+	    if (tokens_size >= number_of_tokens) {
+            reallocMemory(&tokens, &number_of_tokens);
+        }
+
+        int state = 0;
 		// limit function calls by grouping tokens based on composition
 		switch(char_class) {
 			case COMMENT_CLASS:
-                int state = 0;
-
                 lexeme[lexeme_index++] = getc(file);
                 storeToken(token, tokens, lexeme, COMMENT_BEGIN);
 
@@ -69,13 +79,17 @@ Token *lex(FILE *file) {
                     if(ch == EOF) {
                         storeToken(token1, tokens, lexeme, COMMENT);
                         tokens_size++;
-                        break;
+                        if (tokens_size >= number_of_tokens) {
+                            reallocMemory(&tokens, &number_of_tokens);
+                        }
+                        break; // Exit early for EOF
                     }
 
                     switch (state) {
                         case 0:
                             if (ch == ':') {
                                 state = 1;
+                                
                             } else {
                                 lexeme[lexeme_index++] = ch;
                             }
@@ -85,39 +99,43 @@ Token *lex(FILE *file) {
                                 state = 2; // accept the input
                             } else {
                                 lexeme[lexeme_index++] = ':';
+                                lexeme[lexeme_index++] = ch;
                                 state = 0; // check for ':' input again
                             }
                             break;
                     }
                 } // end of while(state != 2)
 
-                if(ch == EOF) {
-                    break;
-                }
-
-                if(lexeme_index != 0) {
-                    storeToken(token1, tokens, lexeme, COMMENT);
+                if(lexeme_index != 0 && ch != EOF){
+                    // Store the non-blank block comment content
+                    storeToken(token, tokens, lexeme, COMMENT);
                     tokens_size++;
+                    if (tokens_size >= number_of_tokens) {
+                        reallocMemory(&tokens, &number_of_tokens);
+                    }
                 }
 
                 if(state == 2) {
                     lexeme_index = 2;
                     Token *token2 = malloc(sizeof(Token));;
-                    strcpy_s(lexeme, 3, ":>");
+                    strcpy(lexeme, ":>");
                     storeToken(token2, tokens, lexeme, COMMENT_END);
                     tokens_size++;
+                    if (tokens_size >= number_of_tokens) {
+                        reallocMemory(&tokens, &number_of_tokens);
+                    }
                 }
 				break;
 
 			case LETTER: // tokens containing only letters
 				ch = getNextChar(file);
-				while(isalpha(ch) && ch != '\n') {
+				while(isalpha(ch) && ch != '\n' && ch != EOF) {
 					lexeme[lexeme_index++] = ch;
 					ch = getNextChar(file);
 				} 
 				
 				if(isdigit(ch)) { // takes lexemes beginning with letters but containing numbers
-					while(!(isspace(ch)) || ch != '\n') {
+					while(!(isspace(ch)) && ch != '\n' && ch != EOF) {
 						lexeme[lexeme_index++] = ch;
 						ch = getNextChar(file);
 					}
@@ -128,14 +146,11 @@ Token *lex(FILE *file) {
 				lexeme[lexeme_index] = '\0';
 				ungetc(ch, file);
 				
-				if(isKeyword(token, tokens, lexeme, ch, &type, file)) {
+				if(isKeyword(token, tokens, lexeme, ch, &type)) {
 		            storeToken(token, tokens, lexeme, type);
-		    	} else if(isReservedWord(lexeme, ch, &type, file)) {
+		    	} else if(isReservedWord(lexeme, ch, &type)) {
 		            storeToken(token, tokens, lexeme, type);
-				} /*else if(isNoiseWord(lexeme, ch, &type, file)){
-					type = NOISE_WORD;
-		        	storeToken(token, tokens, lexeme, type);
-		        } */else {
+				} else {
 		    		storeToken(token, tokens, lexeme, INVALID);
 				}
 		    	break;
@@ -151,31 +166,65 @@ Token *lex(FILE *file) {
 			case OTHER: // tokens that have non-alpanumeric characters
 				if(isIdentifier(lexeme, ch, &type, file)) {
           		  	storeToken(token, tokens, lexeme, type);
-		        } else if(isDelimiter(lexeme, ch, &type, file)) {
+		        } else if(isDelimiter(ch, &type)) {
 					storeToken(token, tokens, lexeme, type);
 
                     if(type == DBL_QUOTE) {
-                        // will try to change to switch case implementation later
-                        
                         lexeme_index = 0;
                         ch = getNextChar(file);
                         
-                        while(ch != '"' ) {
+                        while(ch != '"' && ch != '\n' && ch != EOF) {
                             lexeme[lexeme_index++] = ch; 
                             ch = getNextChar(file);
-
-                            if(ch == '"') {
-                                Token *token = malloc(sizeof(Token));
-                                tokens_size++;
-                                storeToken(token, tokens, lexeme, STRING);
-                            }
                         }
 
                         Token *token = malloc(sizeof(Token)); // allocates memory for current token
-	                    tokens_size++;
+                        storeToken(token, tokens, lexeme, STRING);
+                        tokens_size++;
+                        if (tokens_size >= number_of_tokens) {
+                            reallocMemory(&tokens, &number_of_tokens);
+                        }
                         lexeme_index = 0;
-                        lexeme[lexeme_index++] = ch;
-                        storeToken(token, tokens, lexeme, DBL_QUOTE);
+
+                        if(ch == '"') {
+                            Token *token = malloc(sizeof(Token));
+                            lexeme[lexeme_index++] = ch;
+                            storeToken(token, tokens, lexeme, DBL_QUOTE);
+                            lexeme_index = 0;
+                            tokens_size++;
+                            if (tokens_size >= number_of_tokens) {
+                                reallocMemory(&tokens, &number_of_tokens);
+                            }
+                        } else {
+                            ungetc(ch, file);
+                        }
+                    } else if(type == SNGL_QUOTE){                                    
+                        lexeme_index = 0;
+                        ch = getNextChar(file);
+
+                        if(ch != EOF && ch != '\n' && ch != '\''){
+                            lexeme[lexeme_index++] = ch;
+                            Token *token = malloc(sizeof(Token));
+                            storeToken(token, tokens, lexeme, CHARACTER);
+                            tokens_size++;
+                            if (tokens_size >= number_of_tokens) {
+                                reallocMemory(&tokens, &number_of_tokens);
+                            }
+                            lexeme_index = 0;
+                            ch = getNextChar(file);
+                        }
+
+                        if(ch == '\''){
+                            Token *token = malloc(sizeof(Token));
+                            lexeme[lexeme_index++] = ch;
+                            storeToken(token, tokens, lexeme, SNGL_QUOTE);
+                            tokens_size++;
+                            if (tokens_size >= number_of_tokens) {
+                                reallocMemory(&tokens, &number_of_tokens);
+                            }
+                        } else{
+                            ungetc(ch, file);
+                        }
                     }
 				} else if(isOperator(lexeme, ch, &type, file)) {
             		storeToken(token, tokens, lexeme, type);
@@ -189,24 +238,20 @@ Token *lex(FILE *file) {
 	        	storeToken(token, tokens, lexeme, INVALID);
 		} // end of switch(char_class)
 		lexeme_index = 0;	
+        if(ch == EOF){
+            break;
+        }
     } // end of while(ch != EOF)
 
-    tokens[tokens_index].value = '\0'; // appends null terminator to indicate the end of tokens
+    tokens[tokens_index].value = NULL; // appends null terminator to indicate the end of tokens
     tokens[tokens_index].type = END_OF_TOKENS;
     free(lexeme);
     return tokens;
-}
+} //end of Token *lex
 
 int isNumLiteral(char *lexeme, char ch, int *type, FILE *file) {
 	int has_decimal = 0;
-/* no handling for strings starting with numbers
-   but ending in letters yet eg. (123sd, 422d)
-   
-   current output:
-   123 - INT
-   sd - INVALID
-*/	
-    
+
     ch = getNextChar(file);
     while(isdigit(ch) || ch == '.') {
     	if(ch == '.' && has_decimal == 1) {
@@ -261,18 +306,10 @@ int isIdentifier(char *lexeme, char ch, int *type, FILE *file) {
                 return 0; // invalid variable
             }
         case 2: // checks if next character is valid
-        	//if(isalpha(ch) || isdigit(ch)) {
-				while(isalpha(ch) || isdigit(ch)) {
-	            	lexeme[lexeme_index++] = ch;
-	                ch = getNextChar(file);
-	            }
-	      /*  } else {																				> supposed to take entire invalid identifier
-	            while(!(isspace(ch) || ch == '\n' || ch == '\t')) { // take entire invalid string	> like #name$var will output "#name$var - INVALID"
-            		lexeme[lexeme_index++] = ch;													> issue is that expressions will be INVALID
-                	ch = getNextChar(file);															> ex. (#b + #a)  --->  #a) - INVALID
-                	return 0;																		
-                }																					> current behavior:
-            }*/																					  //> #name$var ---> #name - IDENT, $ - INVALID, var - INVALID
+			while(isalpha(ch) || isdigit(ch)) {
+	        	lexeme[lexeme_index++] = ch;
+	            ch = getNextChar(file);
+            }
             
             ungetc(ch, file);
             if(lexeme[0] == '#') {
@@ -280,13 +317,13 @@ int isIdentifier(char *lexeme, char ch, int *type, FILE *file) {
 			} else {
 				*type = FUNC_IDENT;
 			}
-           	return 1; // invalid character
+           	return 1;
         default:
-                return 0; // Invalid variable
+            return 0; // Invalid variable
     }
 }
 
-int isKeyword(Token *token, Token *tokens, char *lexeme, char ch, int *type, FILE *file) {
+int isKeyword(Token *token, Token *tokens, char *lexeme, char ch, int *type) {
 	int i = 0;  // Index for lexeme
     ch = lexeme[i];  // Start by checking the first character
 
@@ -345,6 +382,16 @@ int isKeyword(Token *token, Token *tokens, char *lexeme, char ch, int *type, FIL
                 lexeme[i + 2] == '\0') {
                 *type = DO_TOKEN;
                 return 1;  // Matched 'do'
+            } 
+            else if(lexeme[i + 1] == 'e' && 
+                lexeme[i + 2] == 'f' && 
+                lexeme[i + 3] == 'a' &&
+                lexeme[i + 4] == 'u' && 
+                lexeme[i + 5] == 'l'&&
+                lexeme[i + 6] == 't' &&
+                lexeme[i + 7] == '\0') {
+                *type = DEFAULT_TOKEN;
+                return 1;
             }
             break;
 
@@ -435,7 +482,7 @@ int isKeyword(Token *token, Token *tokens, char *lexeme, char ch, int *type, FIL
                 lexeme[i + 4] == 'r' && 
                 lexeme[i + 5] == 'n') {
                 if(lexeme[i + 6] == '\0') {
-                    *type = RETURN_TOKEN; // Dito dapat yung checking for "value" noise word
+                    *type = RETURN_TOKEN;
                     return 1;// Matched 'returns'
                 } else if(lexeme[i + 6] == 'v' &&
                     lexeme[i + 7] == 'a' &&
@@ -444,12 +491,12 @@ int isKeyword(Token *token, Token *tokens, char *lexeme, char ch, int *type, FIL
                     lexeme[i + 10] == 'e' &&
                     lexeme[i + 11] == '\0'){
 
-                    strcpy_s(lexeme, 7, "return"); // store "return" as token first
+                    strcpy(lexeme, "return"); // store "return" as token first
                     lexeme_index = 6;
                     *type = RETURN_TOKEN;
                     storeToken(token, tokens, lexeme, *type);
 
-                    strcpy_s(lexeme, 6, "value"); // store "value" noise word
+                    strcpy(lexeme, "value"); // store "value" noise word
                     lexeme_index = 5;
                     token = malloc(sizeof(Token));;
                     *type = NOISE_WORD;
@@ -459,8 +506,7 @@ int isKeyword(Token *token, Token *tokens, char *lexeme, char ch, int *type, FIL
             break;
 
         case 's':  // Start with 's' for the keyword 'size', 'sting', 'switch'
-            if (i + 4 < strlen(lexeme) &&
-                lexeme[i + 1] == 't' && 
+            if (lexeme[i + 1] == 't' && 
                 lexeme[i + 2] == 'i' && 
                 lexeme[i + 3] == 'n' && 
                 lexeme[i + 4] == 'g' &&
@@ -468,8 +514,7 @@ int isKeyword(Token *token, Token *tokens, char *lexeme, char ch, int *type, FIL
                 *type = STING_TOKEN;
                 return 1;  // Matched 'sting'
             }
-            else if (i + 5 < strlen(lexeme) &&
-                lexeme[i + 1] == 'w' && 
+            else if (lexeme[i + 1] == 'w' && 
                 lexeme[i + 2] == 'i' && 
                 lexeme[i + 3] == 't' && 
                 lexeme[i + 4] == 'c' && 
@@ -481,8 +526,7 @@ int isKeyword(Token *token, Token *tokens, char *lexeme, char ch, int *type, FIL
             break;
 
         case 'w':  // Start with 'w' for the keyword 'while'
-            if (i + 4 < strlen(lexeme) &&
-                lexeme[i + 1] == 'h' && 
+            if (lexeme[i + 1] == 'h' && 
                 lexeme[i + 2] == 'i' && 
                 lexeme[i + 3] == 'l' && 
                 lexeme[i + 4] == 'e' &&
@@ -497,14 +541,13 @@ int isKeyword(Token *token, Token *tokens, char *lexeme, char ch, int *type, FIL
     return 0;
 }
 
-int isReservedWord(char *lexeme, char ch, int *type, FILE *file) {
+int isReservedWord(char *lexeme, char ch, int *type) {
 	int i = 0;  // Index for lexeme
     ch = lexeme[i];  // Start by checking the first character
 
 	switch(ch){
         case 'b':
-            if (i + 3 < strlen(lexeme) &&
-                lexeme[i + 1] == 'o' &&
+            if (lexeme[i + 1] == 'o' &&
                 lexeme[i + 2] == 'o' &&
                 lexeme[i + 3] == 'l' &&
                 lexeme[i + 4] == '\0') {
@@ -514,16 +557,14 @@ int isReservedWord(char *lexeme, char ch, int *type, FILE *file) {
             break;
 
         case 'c':
-            if (i + 3 < strlen(lexeme) &&
-                lexeme[i + 1] == 'h' &&
+            if (lexeme[i + 1] == 'h' &&
                 lexeme[i + 2] == 'a' &&
                 lexeme[i + 3] == 'r' &&
                 lexeme[i + 4] == '\0') {
                 *type = CHAR_TOKEN;
                 return 1; //matched char
             }
-            else if (i + 3 < strlen(lexeme) &&
-                lexeme[i + 1] == 'h' &&
+            else if (lexeme[i + 1] == 'h' &&
                 lexeme[i + 2] == 'a' &&
                 lexeme[i + 3] == 'i' &&
                 lexeme[i + 4] == 'n' &&
@@ -534,8 +575,7 @@ int isReservedWord(char *lexeme, char ch, int *type, FILE *file) {
             break;
             
         case 'i':
-            if (i + 2 < strlen(lexeme) &&
-                lexeme[i + 1] == 'n' &&
+            if (lexeme[i + 1] == 'n' &&
                 lexeme[i + 2] == 't' &&
                 lexeme[i + 3] == '\0') {
                 *type = INT_TOKEN;
@@ -544,8 +584,7 @@ int isReservedWord(char *lexeme, char ch, int *type, FILE *file) {
             break;
 
         case 'f':
-            if (i + 4 < strlen(lexeme) &&
-                lexeme[i + 1] == 'l' &&
+            if (lexeme[i + 1] == 'l' &&
                 lexeme[i + 2] == 'o' &&
                 lexeme[i + 3] == 'a' &&
                 lexeme[i + 4] == 't' &&
@@ -553,8 +592,7 @@ int isReservedWord(char *lexeme, char ch, int *type, FILE *file) {
                 *type = FLOAT_TOKEN;
                 return 1; //matched float
             }
-            else if (i + 4 < strlen(lexeme) &&
-                lexeme[i + 1] == 'a' &&
+            else if (lexeme[i + 1] == 'a' &&
                 lexeme[i + 2] == 'l' &&
                 lexeme[i + 3] == 's' &&
                 lexeme[i + 4] == 'e' &&
@@ -565,8 +603,7 @@ int isReservedWord(char *lexeme, char ch, int *type, FILE *file) {
             break;
 
         case 't':
-            if(i + 3 < strlen(lexeme) &&
-                lexeme[i + 1] == 'r' &&
+            if(lexeme[i + 1] == 'r' &&
                 lexeme[i + 2] == 'u' &&
                 lexeme[i + 3] == 'e' &&
                 lexeme[i + 4] == '\0') {
@@ -578,7 +615,7 @@ int isReservedWord(char *lexeme, char ch, int *type, FILE *file) {
     return 0;  // Not a reserved word
 }
 
-int isDelimiter(char *lexeme, char ch, int *type, FILE *file) {
+int isDelimiter(char ch, int *type) {
 	switch (ch) {
         case ';':
     		*type = SEMICOLON;
@@ -608,8 +645,11 @@ int isDelimiter(char *lexeme, char ch, int *type, FILE *file) {
     		*type = DBL_QUOTE;
     		return 1;
         case '\'':
-    		*type = SNGL_QUOTE;
+            *type = SNGL_QUOTE;
     		return 1;
+        case ':':
+            *type = COLON;
+            return 1;
         default:
             return 0; // not a delimiter
     }
@@ -643,39 +683,22 @@ int isOperator(char *lexeme, char ch, int *type, FILE *file) {
     		*type = MULTIPLICATION;
     		return 1;
     	case '/':
-    		*type = DIVISION;
             ch = getc(file);
             if(ch == '/') {
                 *type = INT_DIVISION;
                 lexeme[lexeme_index++] = ch;
                 return 1;
             } else {
+                *type = DIVISION;
 				ungetc(ch, file);
+                return 1;
 	    	}
-    		return 1;
     	case '%':
     		*type = MODULO;
     		return 1;
     	case '^':
     		*type = EXPONENT;
     		return 1;
-    	/*case 'D':
-    		ch = getc(file);
-    		if(ch == 'I') {
-    			lexeme[lexeme_index++] = ch;
-    			ch = getc(file);
-    			if(ch == 'V') {
-    				lexeme[lexeme_index++] = ch;
-    				*type = INT_DIVISION;
-    				return 1;
-				} else {
-					ungetc(ch, file);
-					return 0;
-				}
-			} else {
-				ungetc(ch, file);
-				return 0;
-			}*/
 		case '>':
     		ch = getNextChar(file);
     		if(ch == '=') {
@@ -756,6 +779,7 @@ char getNextChar(FILE *file) {
             char_class = COMMENT_CLASS;
             ungetc(temp, file);
         } else {
+            char_class = OTHER;
             ungetc(temp, file);
         }
 	} else if(isalpha(ch)) {
@@ -784,12 +808,23 @@ char getNonBlank(FILE *file) {
 }
 
 void storeToken(Token *token, Token *tokens, char *lexeme, int type) {
-    token->value = malloc(strlen(lexeme) + 1);
     lexeme[lexeme_index] = '\0';
-    strcpy_s(token->value, strlen(lexeme) + 1, lexeme);
+    token->value = malloc(strlen(lexeme) + 1);
+    strcpy(token->value, lexeme);
     token->line = line;
     token->type = type;
     
     tokens[tokens_index] = *token;
     tokens_index++;
+}
+
+void reallocMemory(Token **tokens, int *number_of_tokens) {
+    *number_of_tokens *= 2;
+    Token *new_tokens = realloc(*tokens, sizeof(Token) * *number_of_tokens);
+    if (!new_tokens) {
+        perror("Failed to reallocate memory for tokens");
+        free(*tokens);
+        exit(EXIT_FAILURE);
+    }
+    *tokens = new_tokens; // Update the caller's pointer
 }
