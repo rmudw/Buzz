@@ -1,0 +1,23 @@
+buzz
+	beegin
+
+	float #num1, #num2;
+	bool #val = true;
+	#sum = #a + #b;
+	#a = #b;
+
+	queenbee {
+		if(#a < #b) {
+			buzzout("string");
+			buzzout("%d", #a);
+			buzzout("Age:%d%d", #e, #f);
+		} else {
+			gather #d;
+			if(true) {
+				int #a;
+			} elseif(false) {
+				int #b;
+			}
+		}
+	}
+	beegone

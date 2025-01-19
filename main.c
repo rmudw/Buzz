@@ -4,61 +4,15 @@
 #include <ctype.h>
 
 #include "lex.h"
+#include "parser.h"
 
 const char* VALID_EXTENSION = ".bz";
 
-// Function to check if the file extension is correct
-void check_file_type(const char* filename, const char* expectedExtension) {
-    const char *dot = strrchr(filename, '.');
-    if (!dot || strcmp(dot, expectedExtension) != 0) {
-        fprintf(stderr, "Error: Invalid file type '%s'. Expected '%s'.\n", filename, expectedExtension);
-        exit(EXIT_FAILURE);
-    }
-}
+void writeToken(Token *tokens, FILE *outputFile) {
+    printf("| %-10s | %-25s | %-30s |\n", "LINE", "LEXEME", "TOKEN TYPE");
+	fprintf(outputFile, "| %-10s | %-25s | %-30s |\n", "LINE", "LEXEME", "TOKEN TYPE");
 
-int main() {
-    const char *filename = "sc.bz";         // Hardcoded input file name
-    const char *outputfile = "SymbolTable.bz"; // Hardcoded output file name
-
-    // Check extensions
-    check_file_type(filename, VALID_EXTENSION);
-    check_file_type(outputfile, VALID_EXTENSION);
-
-    // Open input file
-    FILE *file = fopen(filename, "r");
-    if (!file) {
-        perror("Error: Unable to open input file");
-        return EXIT_FAILURE;
-    }
-
-    // Debug: Check input file size
-    fseek(file, 0, SEEK_END);
-    long file_size = ftell(file);
-    fseek(file, 0, SEEK_SET);
-    if (file_size == 0) {
-        fprintf(stderr, "Error: Input file is empty.\n");
-        fclose(file);
-        return EXIT_FAILURE;
-    }
-
-    // Open output file
-    FILE *outputFile = fopen(outputfile, "w");
-    if (!outputFile) {
-        perror("Error: Unable to create output file");
-        fclose(file); // Close input file
-        return EXIT_FAILURE;
-    }
-
-    // Tokenize the input file
-    //size_t token_count = 0;
-    //fclose(file);  // Close the input file after lexing
-
-	Token *tokens = lex(file);
-	fclose(file);
-
-
-	int i = 0;
-	char *token_type[] = {
+    char *token_type[] = {
 		"ADDITION", "SUBTRACTION", "MULTIPLICATION", "DIVISION", 
 		"MODULO", "EXPONENT", "INT_DIVISION", "ASSIGNMENT_OP",
 
@@ -81,24 +35,65 @@ int main() {
 		"COMMENT_BEGIN", "COMMENT", "COMMENT_END", "VAR_IDENT", "FUNC_IDENT", "NOISE_WORD", "INVALID", "END_OF_TOKENS"
 	};
 
-	printf("| %-10s | %-25s | %-30s |\n", "LINE", "LEXEME", "TOKEN TYPE");
-	fprintf(outputFile, "| %-10s | %-25s | %-30s |\n", "LINE", "LEXEME", "TOKEN TYPE");
+    int i = 0;
+    while(tokens[i].type != END_OF_TOKENS) {
+        printf("| %-10d | %-25s | %-30s |\n", tokens[i].line, tokens[i].value, token_type[tokens[i].type]);
+        fprintf(outputFile, "| %-10d | %-25s | %-30s |\n", tokens[i].line, tokens[i].value, token_type[tokens[i].type]);
+        i++; 
+    }
+}
 
-	while(tokens[i].type != END_OF_TOKENS) {
-		printf("| %-10d | %-25s | %-30s |\n", tokens[i].line, tokens[i].value, token_type[tokens[i].type]);
-		fprintf(outputFile, "| %-10d | %-25s | %-30s |\n", tokens[i].line, tokens[i].value, token_type[tokens[i].type]);
-		//printf("| %-10d | %-10d | %-25s | %-30d |\n", tokens[i].line, tokens[i].column, tokens[i].value, tokens[i].type);
-		i++;
-	}
-	
-	//parser(tokens);
+// Function to check if the file extension is correct
+void check_file_type(const char* filename, const char* expectedExtension) {
+    const char *dot = strrchr(filename, '.');
+    if (!dot || strcmp(dot, expectedExtension) != 0) {
+        fprintf(stderr, "Error: Invalid file type '%s'. Expected '%s'.\n", filename, expectedExtension);
+        exit(EXIT_FAILURE);
+    }
+}
 
-	if (!tokens) {
-        fprintf(stderr, "Error: Failed to tokenize input file\n");
-        fclose(outputFile);
+int main(int argc, char *argv[]) {
+
+    if (argc != 3) {
+        fprintf(stderr, "Error: Correct syntax: %s <input_file.bz> <output_file>\n", argv[0]);
         return EXIT_FAILURE;
     }
 
+    // Check extensions
+    check_file_type(argv[1], VALID_EXTENSION);
+    check_file_type(argv[2], VALID_EXTENSION);
+
+    // Open input file
+    FILE *file = fopen(argv[1], "r");
+    if (!file) {
+        perror("Error: Unable to open input file");
+        return EXIT_FAILURE;
+    }
+
+    // Debug: Check input file size
+    fseek(file, 0, SEEK_END);
+    long file_size = ftell(file);
+    fseek(file, 0, SEEK_SET);
+    if (file_size == 0) {
+        fprintf(stderr, "Error: Input file is empty.\n");
+        fclose(file);
+        return EXIT_FAILURE;
+    }
+
+    // Open output file
+    FILE *outputFile = fopen(argv[2], "w");
+    if (!outputFile) {
+        perror("Error: Unable to create output file");
+        fclose(file); // Close input file
+        return EXIT_FAILURE;
+    }
+
+	Token *tokens = lex(file);
+    fclose(file);
+
+    writeToken(tokens, outputFile);
 	fclose(outputFile);
+
+	Node *AST = parseProgram(tokens);
 	return 0;
 }

@@ -245,6 +245,7 @@ Token *lex(FILE *file) {
 
     tokens[tokens_index].value = NULL; // appends null terminator to indicate the end of tokens
     tokens[tokens_index].type = END_OF_TOKENS;
+    tokens[tokens_index].line = line;
     free(lexeme);
     return tokens;
 } //end of Token *lex
