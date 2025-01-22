@@ -22,233 +22,270 @@ int char_class;
 #define OTHER 3
 
 Token *lex(FILE *file) {
-	int type;
-	
-	// stores all tokens
-	int number_of_tokens = 12; // placeholder value for number of tokens
-  	int tokens_size = 0;
-    Token *tokens = malloc(sizeof(Token) * number_of_tokens); // array of all tokens in file
-  	if (!tokens) {
-        perror("Failed to allocate memory for tokens");
-        exit(EXIT_FAILURE);
+    int type;
+    
+    // stores all tokens
+    int number_of_tokens = 12; // placeholder value for number of tokens
+    int tokens_size = 0;
+    Token *tokens = malloc(sizeof(Token) * number_of_tokens);
+    
+    switch(tokens != NULL) {
+        case 0:
+            perror("Failed to allocate memory for tokens");
+            exit(EXIT_FAILURE);
     }
 
-	// finds length of file
-	fseek(file, 0, SEEK_END);
+    // finds length of file
+    fseek(file, 0, SEEK_END);
     int length = ftell(file);
     fseek(file, 0, SEEK_SET);
 
-	char *lexeme = malloc(sizeof(char) * (length + 1));
-	if (!lexeme) {
-        perror("Failed to allocate memory for lexeme");
-        free(tokens);
-        exit(EXIT_FAILURE);
+    char *lexeme = malloc(sizeof(char) * (length + 1));
+    switch(lexeme != NULL) {
+        case 0:
+            perror("Failed to allocate memory for lexeme");
+            free(tokens);
+            exit(EXIT_FAILURE);
     }
     
     char ch;
-	
+    
     while((ch = getNonBlank(file)) != EOF) {
-    	lexeme[lexeme_index++] = ch; // builds lexeme by character
+        lexeme[lexeme_index++] = ch;
         
-    	Token *token = malloc(sizeof(Token)); // allocates memory for current token
-	    if (!token) {
-            perror("Failed to allocate memory for token");
-            free(tokens);
-            free(lexeme);
-            exit(EXIT_FAILURE);
+        Token *token = malloc(sizeof(Token));
+        switch(token != NULL) {
+            case 0:
+                perror("Failed to allocate memory for token");
+                free(tokens);
+                free(lexeme);
+                exit(EXIT_FAILURE);
         }
         tokens_size++;
 
-	    if (tokens_size >= number_of_tokens) {
-            reallocMemory(&tokens, &number_of_tokens);
+        switch(tokens_size >= number_of_tokens) {
+            case 1:
+                reallocMemory(&tokens, &number_of_tokens);
+                break;
         }
 
-        int state = 0;
-		// limit function calls by grouping tokens based on composition
-		switch(char_class) {
-			case COMMENT_CLASS:
-                lexeme[lexeme_index++] = getc(file);
-                storeToken(token, tokens, lexeme, COMMENT_BEGIN);
+        switch(char_class) {
+            case COMMENT_CLASS:
+                processComment(file, tokens, &tokens_size, &number_of_tokens, lexeme);
+                break;
 
-                lexeme_index = 0;
-                Token *token1 = malloc(sizeof(Token));;
+            case LETTER:
+                processLetter(file, token, tokens, lexeme, &type);
+                break;
 
-                while(state != 2) {
-                    ch = getNextChar(file);
+            case DIGIT:
+                processDigit(file, token, tokens, lexeme, &type);
+                break;
 
-                    if(ch == EOF) {
-                        storeToken(token1, tokens, lexeme, COMMENT);
-                        tokens_size++;
-                        if (tokens_size >= number_of_tokens) {
-                            reallocMemory(&tokens, &number_of_tokens);
-                        }
-                        break; // Exit early for EOF
-                    }
+            case OTHER:
+                processOther(file, token, tokens, &tokens_size, &number_of_tokens, lexeme, &type);
+                break;
 
-                    switch (state) {
-                        case 0:
-                            if (ch == ':') {
-                                state = 1;
-                                
-                            } else {
-                                lexeme[lexeme_index++] = ch;
-                            }
-                            break;
-                        case 1: 
-                            if (ch == '>') {
-                                state = 2; // accept the input
-                            } else {
-                                lexeme[lexeme_index++] = ':';
-                                lexeme[lexeme_index++] = ch;
-                                state = 0; // check for ':' input again
-                            }
-                            break;
-                    }
-                } // end of while(state != 2)
-
-                if(lexeme_index != 0 && ch != EOF){
-                    // Store the non-blank block comment content
-                    storeToken(token, tokens, lexeme, COMMENT);
-                    tokens_size++;
-                    if (tokens_size >= number_of_tokens) {
-                        reallocMemory(&tokens, &number_of_tokens);
-                    }
-                }
-
-                if(state == 2) {
-                    lexeme_index = 2;
-                    Token *token2 = malloc(sizeof(Token));;
-                    strcpy(lexeme, ":>");
-                    storeToken(token2, tokens, lexeme, COMMENT_END);
-                    tokens_size++;
-                    if (tokens_size >= number_of_tokens) {
-                        reallocMemory(&tokens, &number_of_tokens);
-                    }
-                }
-				break;
-
-			case LETTER: // tokens containing only letters
-				ch = getNextChar(file);
-				while(isalpha(ch) && ch != '\n' && ch != EOF) {
-					lexeme[lexeme_index++] = ch;
-					ch = getNextChar(file);
-				} 
-				
-				if(isdigit(ch)) { // takes lexemes beginning with letters but containing numbers
-					while(!(isspace(ch)) && ch != '\n' && ch != EOF) {
-						lexeme[lexeme_index++] = ch;
-						ch = getNextChar(file);
-					}
-					storeToken(token, tokens, lexeme, INVALID);
-					break;
-				}
-				
-				lexeme[lexeme_index] = '\0';
-				ungetc(ch, file);
-				
-				if(isKeyword(token, tokens, lexeme, ch, &type)) {
-		            storeToken(token, tokens, lexeme, type);
-		    	} else if(isReservedWord(lexeme, ch, &type)) {
-		            storeToken(token, tokens, lexeme, type);
-				} else {
-		    		storeToken(token, tokens, lexeme, INVALID);
-				}
-		    	break;
-		    	
-			case DIGIT: // numeric literals
-				if(isNumLiteral(lexeme, ch, &type, file)) {
-					storeToken(token, tokens, lexeme, type);
-				} else {
-					storeToken(token, tokens, lexeme, INVALID);
-				}
-				break;
-				
-			case OTHER: // tokens that have non-alpanumeric characters
-				if(isIdentifier(lexeme, ch, &type, file)) {
-          		  	storeToken(token, tokens, lexeme, type);
-		        } else if(isDelimiter(ch, &type)) {
-					storeToken(token, tokens, lexeme, type);
-
-                    if(type == DBL_QUOTE) {
-                        lexeme_index = 0;
-                        ch = getNextChar(file);
-                        
-                        while(ch != '"' && ch != '\n' && ch != EOF) {
-                            lexeme[lexeme_index++] = ch; 
-                            ch = getNextChar(file);
-                        }
-
-                        Token *token = malloc(sizeof(Token)); // allocates memory for current token
-                        storeToken(token, tokens, lexeme, STRING);
-                        tokens_size++;
-                        if (tokens_size >= number_of_tokens) {
-                            reallocMemory(&tokens, &number_of_tokens);
-                        }
-                        lexeme_index = 0;
-
-                        if(ch == '"') {
-                            Token *token = malloc(sizeof(Token));
-                            lexeme[lexeme_index++] = ch;
-                            storeToken(token, tokens, lexeme, DBL_QUOTE);
-                            lexeme_index = 0;
-                            tokens_size++;
-                            if (tokens_size >= number_of_tokens) {
-                                reallocMemory(&tokens, &number_of_tokens);
-                            }
-                        } else {
-                            ungetc(ch, file);
-                        }
-                    } else if(type == SNGL_QUOTE){                                    
-                        lexeme_index = 0;
-                        ch = getNextChar(file);
-
-                        if(ch != EOF && ch != '\n' && ch != '\''){
-                            lexeme[lexeme_index++] = ch;
-                            Token *token = malloc(sizeof(Token));
-                            storeToken(token, tokens, lexeme, CHARACTER);
-                            tokens_size++;
-                            if (tokens_size >= number_of_tokens) {
-                                reallocMemory(&tokens, &number_of_tokens);
-                            }
-                            lexeme_index = 0;
-                            ch = getNextChar(file);
-                        }
-
-                        if(ch == '\''){
-                            Token *token = malloc(sizeof(Token));
-                            lexeme[lexeme_index++] = ch;
-                            storeToken(token, tokens, lexeme, SNGL_QUOTE);
-                            tokens_size++;
-                            if (tokens_size >= number_of_tokens) {
-                                reallocMemory(&tokens, &number_of_tokens);
-                            }
-                        } else{
-                            ungetc(ch, file);
-                        }
-                    }
-				} else if(isOperator(lexeme, ch, &type, file)) {
-            		storeToken(token, tokens, lexeme, type);
-            	} else {
-	        		storeToken(token, tokens, lexeme, INVALID);
-				}
-            	break;
-            	
-			default:
-				strcpy("Unknown exception", lexeme);
-	        	storeToken(token, tokens, lexeme, INVALID);
-		} // end of switch(char_class)
-		lexeme_index = 0;	
-        if(ch == EOF){
-            break;
+            default:
+                strcpy(lexeme, "Unknown exception");
+                storeToken(token, tokens, lexeme, INVALID);
         }
-    } // end of while(ch != EOF)
-
-    tokens[tokens_index].value = NULL; // appends null terminator to indicate the end of tokens
+        
+        lexeme_index = 0;
+        switch(ch == EOF) {
+            case 1:
+                goto end_loop;
+        }
+    }
+    
+    end_loop:
+    tokens[tokens_index].value = NULL;
     tokens[tokens_index].type = END_OF_TOKENS;
     tokens[tokens_index].line = line;
     free(lexeme);
     return tokens;
-} //end of Token *lex
+}
+
+void processComment(FILE *file, Token *tokens, int *tokens_size, int *number_of_tokens, char *lexeme) {
+    Token *token = malloc(sizeof(Token));
+    lexeme[lexeme_index++] = getc(file);
+    storeToken(token, tokens, lexeme, COMMENT_BEGIN);
+
+    lexeme_index = 0;
+    Token *token1 = malloc(sizeof(Token));
+    int state = 0;
+    char ch;
+
+    while(state != 2) {
+        ch = getNextChar(file);
+        
+        switch(ch == EOF) {
+            case 1:
+                storeToken(token1, tokens, lexeme, COMMENT);
+                (*tokens_size)++;
+                switch(*tokens_size >= *number_of_tokens) {
+                    case 1:
+                        reallocMemory(&tokens, number_of_tokens);
+                        break;
+                }
+                goto end_comment;
+        }
+
+        switch(state) {
+            case 0:
+                switch(ch == ':') {
+                    case 1:
+                        state = 1;
+                        break;
+                    default:
+                        lexeme[lexeme_index++] = ch;
+                        break;
+                }
+                break;
+            
+            case 1:
+                switch(ch == '>') {
+                    case 1:
+                        state = 2;
+                        break;
+                    default:
+                        lexeme[lexeme_index++] = ':';
+                        lexeme[lexeme_index++] = ch;
+                        state = 0;
+                        break;
+                }
+                break;
+        }
+    }
+
+    end_comment:
+    switch(lexeme_index != 0 && ch != EOF) {
+        case 1:
+            storeToken(token1, tokens, lexeme, COMMENT);
+            (*tokens_size)++;
+            switch(*tokens_size >= *number_of_tokens) {
+                case 1:
+                    reallocMemory(&tokens, number_of_tokens);
+                    break;
+            }
+            break;
+    }
+
+    switch(state == 2) {
+        case 1:
+            lexeme_index = 2;
+            Token *token2 = malloc(sizeof(Token));
+            strcpy(lexeme, ":>");
+            storeToken(token2, tokens, lexeme, COMMENT_END);
+            (*tokens_size)++;
+            switch(*tokens_size >= *number_of_tokens) {
+                case 1:
+                    reallocMemory(&tokens, number_of_tokens);
+                    break;
+            }
+            break;
+    }
+}
+
+void processLetter(FILE *file, Token *token, Token *tokens, char *lexeme, int *type) {
+    char ch = getNextChar(file);
+    
+    while(isalpha(ch) && ch != '\n' && ch != EOF) {
+        lexeme[lexeme_index++] = ch;
+        ch = getNextChar(file);
+    }
+
+    switch(isdigit(ch)) {
+        case 1:
+            while(!(isspace(ch)) && ch != '\n' && ch != EOF) {
+                lexeme[lexeme_index++] = ch;
+                ch = getNextChar(file);
+            }
+            storeToken(token, tokens, lexeme, INVALID);
+            return;
+    }
+
+    lexeme[lexeme_index] = '\0';
+    ungetc(ch, file);
+
+    int tokenType = determineLetterTokenType(token, tokens, lexeme, ch, type);
+    switch(tokenType) {
+        case KEYWORD:
+            storeToken(token, tokens, lexeme, *type);
+            break;
+        case RESERVED:
+            storeToken(token, tokens, lexeme, *type);
+            break;
+        default:
+            storeToken(token, tokens, lexeme, INVALID);
+            break;
+    }
+}
+
+void processOther(FILE *file, Token *token, Token *tokens, int *tokens_size, int *number_of_tokens, char *lexeme, int *type) {
+    int tokenType = determineOtherTokenType(lexeme, ch, type, file);
+    switch(tokenType) {
+        case IDENTIFIER:
+            storeToken(token, tokens, lexeme, *type);
+            break;
+        case DELIMITER:
+            storeToken(token, tokens, lexeme, *type);
+            processDelimiter(file, tokens, tokens_size, number_of_tokens, lexeme, *type);
+            break;
+        case OPERATOR:
+            storeToken(token, tokens, lexeme, *type);
+            break;
+        default:
+            storeToken(token, tokens, lexeme, INVALID);
+            break;
+    }
+}
+
+void processDelimiter(FILE *file, Token *tokens, int *tokens_size, int *number_of_tokens, char *lexeme, int type) {
+    switch(type) {
+        case DBL_QUOTE:
+            processString(file, tokens, tokens_size, number_of_tokens, lexeme);
+            break;
+            
+        case SNGL_QUOTE:
+            processCharacter(file, tokens, tokens_size, number_of_tokens, lexeme);
+            break;
+    }
+}
+
+// Helper functions to determine token types
+int determineLetterTokenType(Token *token, Token *tokens, char *lexeme, char ch, int *type) {
+    switch(isKeyword(token, tokens, lexeme, ch, type)) {
+        case 1:
+            return KEYWORD;
+    }
+    
+    switch(isReservedWord(lexeme, ch, type)) {
+        case 1:
+            return RESERVED;
+    }
+    
+    return INVALID;
+}
+
+int determineOtherTokenType(char *lexeme, char ch, int *type, FILE *file) {
+    switch(isIdentifier(lexeme, ch, type, file)) {
+        case 1:
+            return IDENTIFIER;
+    }
+    
+    switch(isDelimiter(ch, type)) {
+        case 1:
+            return DELIMITER;
+    }
+    
+    switch(isOperator(lexeme, ch, type, file)) {
+        case 1:
+            return OPERATOR;
+    }
+    
+    return INVALID;
+}
 
 int isNumLiteral(char *lexeme, char ch, int *type, FILE *file) {
 	int lexeme_index = 0;
@@ -860,8 +897,6 @@ int isReservedWord(char *lexeme, char ch, int *type) {
         
     
 	
-
-
 int isDelimiter(char ch, int *type) {
 	switch (ch) {
         case ';':
