@@ -1,0 +1,136 @@
+Node *parseArrayDeclaration() {
+    Node *node = createNode("<array_declaration>");
+    
+    // Check for 'hive' keyword
+    if (peekToken()->type == HIVE_TOKEN) {
+        addChild(node, createNode(peekToken()->value));
+        advanceToken();
+        
+        // Parse type
+        if (isType(peekToken()->type)) {
+            addChild(node, createNode(peekToken()->value));
+            advanceToken();
+            
+            // Parse first array declaration
+            parseArrayDeclarator(node);
+            
+            // Parse additional declarations after commas
+            while (peekToken()->type == COMMA) {
+                addChild(node, createNode(peekToken()->value));
+                advanceToken();
+                parseArrayDeclarator(node);
+            }
+            
+            // Check for semicolon
+            if (peekToken()->type != SEMICOLON) {
+                errorMessage("Expected ';' after array declaration");
+                addChild(node, createNode("Error"));
+                errorRecovery();
+                hasError = 1;
+            }
+        } else {
+            errorMessage("Expected type after 'hive'");
+            addChild(node, createNode("Error"));
+            errorRecovery();
+            hasError = 1;
+        }
+    }
+    
+    return node;
+}
+
+void parseArrayDeclarator(Node *parent) {
+    // Parse variable identifier
+    if (peekToken()->type == VAR_IDENT) {
+        addChild(parent, createNode(peekToken()->value));
+        advanceToken();
+        
+        // Parse array size specification
+        if (peekToken()->type == LEFT_BRACKET) {
+            addChild(parent, createNode(peekToken()->value));
+            advanceToken();
+            
+            if (peekToken()->type == INTEGER) {
+                addChild(parent, createNode(peekToken()->value));
+                advanceToken();
+                
+                if (peekToken()->type == RIGHT_BRACKET) {
+                    addChild(parent, createNode(peekToken()->value));
+                    advanceToken();
+                    
+                    // Check for optional initialization
+                    if (peekToken()->type == ASSIGNMENT_OP) {
+                        addChild(parent, createNode(peekToken()->value));
+                        advanceToken();
+                        parseArrayInitializer(parent);
+                    }
+                } else {
+                    errorMessage("Expected ']' after array size");
+                    addChild(parent, createNode("Error"));
+                    errorRecovery();
+                    hasError = 1;
+                }
+            } else {
+                errorMessage("Expected integer for array size");
+                addChild(parent, createNode("Error"));
+                errorRecovery();
+                hasError = 1;
+            }
+        } else {
+            errorMessage("Expected '[' after array identifier");
+            addChild(parent, createNode("Error"));
+            errorRecovery();
+            hasError = 1;
+        }
+    } else {
+        errorMessage("Expected variable identifier");
+        addChild(parent, createNode("Error"));
+        errorRecovery();
+        hasError = 1;
+    }
+}
+
+void parseArrayInitializer(Node *parent) {
+    if (peekToken()->type == LEFT_BRACE) {
+        addChild(parent, createNode(peekToken()->value));
+        advanceToken();
+        
+        // Parse first value
+        if (isValue(peekToken()->type)) {
+            addChild(parent, createNode(peekToken()->value));
+            advanceToken();
+            
+            // Parse additional values
+            while (peekToken()->type == COMMA_TOKEN) {
+                addChild(parent, createNode(peekToken()->value));
+                advanceToken();
+                
+                if (isValue(peekToken()->type)) {
+                    addChild(parent, createNode(peekToken()->value));
+                    advanceToken();
+                } else {
+                    errorMessage("Expected value after ','");
+                    addChild(parent, createNode("Error"));
+                    errorRecovery();
+                    hasError = 1;
+                    break;
+                }
+            }
+        }
+        
+        if (peekToken()->type == RIGHT_BRACE) {
+            addChild(parent, createNode(peekToken()->value));
+            advanceToken();
+        } else {
+            errorMessage("Expected '}' after array initialization");
+            addChild(parent, createNode("Error"));
+            errorRecovery();
+            hasError = 1;
+        }
+    } else {
+        errorMessage("Expected '{' for array initialization");
+        addChild(parent, createNode("Error"));
+        errorRecovery();
+        hasError = 1;
+    }
+}
