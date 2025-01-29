@@ -1,0 +1,59 @@
+Node *parseComment() {
+    Node *node = createNode("<comment>");
+    
+    // Check for comment start '<|'
+    if (peekToken()->type == COMMENT_BEGIN) {  // COMMENT_BEGIN represents '<|'
+        addChild(node, createNode(peekToken()->value));
+        advanceToken();
+        
+        // Consume all tokens until we find ':>' or newline/EOF
+        while (peekToken()->type != COMMENT_END &&    // COMMENT_END represents ':>'
+               peekToken()->type != '\0' &&
+               peekToken()->type != EOF) {
+            addChild(node, createNode(peekToken()->value));
+            advanceToken();
+        }
+        
+        // Check if we found the proper comment end
+        if (peekToken()->type == COMMENT_END) {
+            addChild(node, createNode(peekToken()->value));
+            advanceToken();
+        } else {
+            errorMessage("Unterminated comment - expected ':>'");
+            addChild(node, createNode("Error"));
+            errorRecovery();
+            hasError = 1;
+        }
+    } else {
+        errorMessage("Expected comment starting with '<|'");
+        addChild(node, createNode("Error"));
+        errorRecovery();
+        hasError = 1;
+    }
+    
+    return node;
+}
+
+// Helper function to check if current token starts a comment
+bool isCommentStart(TokenType type) {
+    return type == COMMENT_START;
+}
+
+// Helper function to skip comments during normal parsing
+void skipComment() {
+    if (peekToken()->type == COMMENT_BEGIN) {
+        advanceToken();  // skip '<|'
+        
+        // Skip until we find ':>' or newline/EOF
+        while (peekToken()->type != COMMENT_END &&
+               peekToken()->type != '\0' &&
+               peekToken()->type != EOF) {
+            advanceToken();
+        }
+        
+        // Skip the comment end token if present
+        if (peekToken()->type == COMMENT_END) {
+            advanceToken();
+        }
+    }
+}
