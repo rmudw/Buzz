@@ -1,23 +1,149 @@
 buzz
-	beegin
+beegin
 
-	float #num1, #num2;
-	bool #val = true;
-	#sum = #a + #b;
-	#a = #b;
+    int #i = 0;
+    int #num;
+    int #a, #b, #c;
+    int #x = 0, #y = 0;
+    int #age, #grade;
+    int #quantity;
+    
+    queenbee {
+        
+        buzzout("Enter the quantity of flower available: "); 
+        gather #d; 
 
-	queenbee {
-		if(#a < #b) {
-			buzzout("string");
-			buzzout("%d", #a);
-			buzzout("Age:%d%d", #e, #f);
-		} else {
-			gather #d;
-			if(true) {
-				int #a;
-			} elseif(false) {
+        #flowerName = "Roses";
+        buzzout("The available flower is: %s", #flowerName);
+
+        #x = 10;
+        #y = 5;
+        #x = #y + 5; 
+        
+        if (#x < 10) { 
+            buzzout("x is less than 10: %d", #x); 
+        } else {
+            buzzout("x is greater than or equal to 10: %d", #x);
+        }
+
+		if (#x > 5) { 
+            buzzout("x is less than 10: %d", #x); 
+			if(3 > 2) {
+				gather #d;
+			} else {
+				#a = 2;
+			}
+        } else {
+            buzzout("x is greater than or equal to 10: %d", #x);
+        }
+
+        if (#y == 0) { 
+            buzzout("y is zero");
+        }
+
+		if (#y == 0) { 
+            int #a;
+			if (#q == 0) { 
 				int #b;
 			}
-		}
-	}
-	beegone
+        }
+
+        buzzout("Enter your age: "); 
+        gather #age;
+
+        if (#age >= 18) { 
+            buzzout("You are an adult. Age: %d", #age); 
+        } elseif (#age >= 13) { 
+            buzzout("You are a teenager. Age: %d", #age);
+        } else { 
+            buzzout("You are a child. Enter your guardian's contact number: ");
+            gather #num;
+        }
+
+		if (#age == 18) { 
+            buzzout("You are an adult. Age: %d", #age); 
+        } elseif (#age >= 13) { 
+            buzzout("You are a teenager. Age: %d", #age);
+			if(6 > 10) {
+				gather #a;
+			} elseif (6 < 9) {
+				gather #b;
+			} else {
+				gather #c;
+			}
+        } else { 
+            buzzout("You are a child. Enter your guardian's contact number: ");
+            gather #num;
+        }
+
+        buzzout("Enter your grade (A/B/C/D/F): "); 
+        gather #grade;
+
+        switch (#grade) {
+            case 'A':
+                buzzout("Excellent!");
+                sting;
+            case 'B':
+                buzzout("Good job!");
+                sting;
+            default:
+                buzzout("Keep trying!");
+        }
+
+		switch (#score) {
+            case 'A':
+                buzzout("Excellent!");
+				if (3 > 1) {
+
+				}
+                sting;
+			
+            default:
+                buzzout("Keep trying!");
+        }
+
+        for (#i = 0; #i < 10; #i = #i + 1) {
+            buzzout("Value of i: %d", #i);
+        }
+
+        for (#i = 0; #i < 5; #i = #i + 1) {
+            for (#j = 0; #j < 3; #j = #j + 1) {
+                buzzout("i: %d, j: %d", #i, #j);
+            }
+        }
+
+        #x = 0; 
+        while (#x < 5) {
+            buzzout("Current value: %d", #x);
+            #x = #x + 1;
+        }
+
+        #y = 0; 
+        while (#x < 10) {
+            while (#y < 10) {
+                buzzout("%d ", #y);
+                #y++;
+            }
+            #x++;
+        }
+
+        do {
+            buzzout("%d", #x);
+            #x++;
+        } while (#x < 10);
+
+        do {
+            int #x = 20;
+            int #y = 10;
+            
+            do {
+                buzzout("%d", #y);
+                #y++;
+            } while (#y < 11);
+
+            buzzout("\n");
+            #x++;
+        } while (#x <= 20);
+    }
+
+beegone

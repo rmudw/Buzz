@@ -128,28 +128,8 @@ Token *lex(FILE *file) {
 				break;
 
 			case LETTER: // tokens containing only letters
-				ch = getNextChar(file);
-				while(isalpha(ch) && ch != '\n' && ch != EOF) {
-					lexeme[lexeme_index++] = ch;
-					ch = getNextChar(file);
-				} 
-				
-				if(isdigit(ch)) { // takes lexemes beginning with letters but containing numbers
-					while(!(isspace(ch)) && ch != '\n' && ch != EOF) {
-						lexeme[lexeme_index++] = ch;
-						ch = getNextChar(file);
-					}
-					storeToken(token, tokens, lexeme, INVALID);
-					break;
-				}
-				
-				lexeme[lexeme_index] = '\0';
-				ungetc(ch, file);
-				
-				if(isKeyword(token, tokens, lexeme, ch, &type)) {
-		            storeToken(token, tokens, lexeme, type);
-		    	} else if(isReservedWord(lexeme, ch, &type)) {
-		            storeToken(token, tokens, lexeme, type);
+                if(isKeywordReservedword(token, tokens, lexeme, ch, &type, file)) {
+                    storeToken(token, tokens, lexeme, type);
 				} else {
 		    		storeToken(token, tokens, lexeme, INVALID);
 				}
@@ -324,298 +304,6 @@ int isIdentifier(char *lexeme, char ch, int *type, FILE *file) {
     }
 }
 
-int isKeyword(Token *token, Token *tokens, char *lexeme, char ch, int *type) {
-	int i = 0;  // Index for lexeme
-    ch = lexeme[i];  // Start by checking the first character
-
-    switch(ch) {
-        case 'b':  // Start with 'b' for the keyword 'beegin'
-            if (lexeme[i + 1] == 'e' && 
-                lexeme[i + 2] == 'e' && 
-                lexeme[i + 3] == 'g' && 
-                lexeme[i + 4] == 'i' && 
-                lexeme[i + 5] == 'n' &&
-                lexeme[i + 6] == '\0') {
-                *type = BEEGIN_TOKEN;
-                return 1;  // Matched 'beegin'
-            }
-            else if (lexeme[i + 1] == 'e' && 
-                lexeme[i + 2] == 'e' && 
-                lexeme[i + 3] == 'g' && 
-                lexeme[i + 4] == 'o' &&
-                lexeme[i + 5] == 'n' &&
-                lexeme[i + 6] == 'e'&&
-                lexeme[i + 7] == '\0'){
-                *type = BEEGONE_TOKEN;
-                return 1; //matched 'beegone'
-            }
-            else if (lexeme[i + 1] == 'u' && 
-                lexeme[i + 2] == 'z' && 
-                lexeme[i + 3] == 'z' && 
-                lexeme[i + 4] == 'o' &&
-                lexeme[i + 5] == 'u' &&
-                lexeme[i + 6] == 't'&&
-                lexeme[i + 7] == '\0') {
-                *type = BUZZOUT_TOKEN;
-            	return 1;  // Matched 'buzzout'
-            }
-            else if (lexeme[i + 1] == 'u' && 
-                lexeme[i + 2] == 'z' && 
-                lexeme[i + 3] == 'z'&&
-                lexeme[i + 4] == '\0') {
-                *type = BUZZ_TOKEN;
-                return 1;  // Matched 'buzz'
-            }
-            break;
-
-        case 'c':  // Start with 'c' for the keyword 'case'
-            if (lexeme[i + 1] == 'a' && 
-                lexeme[i + 2] == 's' && 
-                lexeme[i + 3] == 'e'&&
-                lexeme[i + 4] == '\0') {
-                *type = CASE_TOKEN;
-                return 1;  // Matched 'case'
-            }
-            break;
-
-        case 'd':  // Start with 'd' for the keyword 'do' or 'downto'
-            if (lexeme[i + 1] == 'o'&&
-                lexeme[i + 2] == '\0') {
-                *type = DO_TOKEN;
-                return 1;  // Matched 'do'
-            } 
-            else if(lexeme[i + 1] == 'e' && 
-                lexeme[i + 2] == 'f' && 
-                lexeme[i + 3] == 'a' &&
-                lexeme[i + 4] == 'u' && 
-                lexeme[i + 5] == 'l'&&
-                lexeme[i + 6] == 't' &&
-                lexeme[i + 7] == '\0') {
-                *type = DEFAULT_TOKEN;
-                return 1;
-            }
-            break;
-
-        case 'e':  // Start with 'e' for the keyword 'else' or 'elseif'
-            if (lexeme[i + 1] == 'l' && 
-                lexeme[i + 2] == 's' && 
-                lexeme[i + 3] == 'e' &&
-                lexeme[i + 4] == 'i' && 
-                lexeme[i + 5] == 'f'&&
-                lexeme[i + 6] == '\0') {
-                *type = ELSEIF_TOKEN;
-                return 1;  // Matched 'elseif'
-            } 
-            else if (lexeme[i + 1] == 'l' && 
-                lexeme[i + 2] == 's' && 
-                lexeme[i + 3] == 'e'&&
-                lexeme[i + 4] == '\0') {
-                *type = ELSE_TOKEN;
-                return 1;  // Matched 'else'
-            }
-            break;
-
-        case 'f':  // Start with 'f' for the keyword 'for'
-            if (lexeme[i + 1] == 'o' && 
-                lexeme[i + 2] == 'r'&&
-                lexeme[i + 3] == '\0') {
-                *type = FOR_TOKEN;
-                return 1;  // Matched 'for'
-            }
-            break;
-
-        case 'g':  // Start with 'g' for the keyword 'gather'
-            if (lexeme[i + 1] == 'a' && 
-                lexeme[i + 2] == 't' && 
-                lexeme[i + 3] == 'h' && 
-                lexeme[i + 4] == 'e' && 
-                lexeme[i + 5] == 'r'&&
-                lexeme[i + 6] == '\0') {
-                *type = GATHER_TOKEN;
-                return 1;  // Matched 'gather'
-            }
-            break;
-
-        case 'h':  // Start with 'h' for the keyword 'hive'
-            if (lexeme[i + 1] == 'i' && 
-                lexeme[i + 2] == 'v' && 
-                lexeme[i + 3] == 'e'&&
-                lexeme[i + 4] == '\0') {
-                *type = HIVE_TOKEN;
-                return 1;  // Matched 'hive'
-           }
-            else if (lexeme[i + 1] == 'o' &&
-                lexeme[i + 2] == 'v' &&
-                lexeme[i + 3] == 'e' &&
-                lexeme[i + 4] == 'r' &&
-                lexeme[i + 5] == '\0') {
-                *type = HOVER_TOKEN;
-                return 1; //matched hover
-            }
-            break;
-
-        case 'i':  // Start with 'i' for the keyword 'if' or 'is'
-            if (lexeme[i + 1] == 'f' &&
-                lexeme[i + 2] == '\0') {
-                *type = IF_TOKEN;
-                return 1;  // Matched 'if'
-            }
-            break;
-
-        case 'q':  // Start with 'q' for the keyword 'queenbee'
-            if (lexeme[i + 1] == 'u' && 
-                lexeme[i + 2] == 'e' && 
-                lexeme[i + 3] == 'e' && 
-                lexeme[i + 4] == 'n' && 
-                lexeme[i + 5] == 'b' && 
-                lexeme[i + 6] == 'e' && 
-                lexeme[i + 7] == 'e' &&
-                lexeme[i + 8] == '\0') {
-                *type = QUEENBEE_TOKEN;
-                return 1;  // Matched 'queenbee'
-            }
-            break;
-
-        case 'r':  // Start with 'r' for the keyword 'return'
-            if (lexeme[i + 1] == 'e' && 
-                lexeme[i + 2] == 't' && 
-                lexeme[i + 3] == 'u' && 
-                lexeme[i + 4] == 'r' && 
-                lexeme[i + 5] == 'n') {
-                if(lexeme[i + 6] == '\0') {
-                    *type = RETURN_TOKEN;
-                    return 1;// Matched 'returns'
-                } else if(lexeme[i + 6] == 'v' &&
-                    lexeme[i + 7] == 'a' &&
-                    lexeme[i + 8] == 'l' &&
-                    lexeme[i + 9] == 'u' &&
-                    lexeme[i + 10] == 'e' &&
-                    lexeme[i + 11] == '\0'){
-
-                    strcpy(lexeme, "return"); // store "return" as token first
-                    lexeme_index = 6;
-                    *type = RETURN_TOKEN;
-                    storeToken(token, tokens, lexeme, *type);
-
-                    strcpy(lexeme, "value"); // store "value" noise word
-                    lexeme_index = 5;
-                    token = malloc(sizeof(Token));;
-                    *type = NOISE_WORD;
-                    return 1;
-                }
-            }
-            break;
-
-        case 's':  // Start with 's' for the keyword 'size', 'sting', 'switch'
-            if (lexeme[i + 1] == 't' && 
-                lexeme[i + 2] == 'i' && 
-                lexeme[i + 3] == 'n' && 
-                lexeme[i + 4] == 'g' &&
-                lexeme[i + 5] == '\0') {
-                *type = STING_TOKEN;
-                return 1;  // Matched 'sting'
-            }
-            else if (lexeme[i + 1] == 'w' && 
-                lexeme[i + 2] == 'i' && 
-                lexeme[i + 3] == 't' && 
-                lexeme[i + 4] == 'c' && 
-                lexeme[i + 5] == 'h' &&
-                lexeme[i + 6] == '\0') {
-                *type = SWITCH_TOKEN;
-                return 1;  // Matched 'switch'
-            }
-            break;
-
-        case 'w':  // Start with 'w' for the keyword 'while'
-            if (lexeme[i + 1] == 'h' && 
-                lexeme[i + 2] == 'i' && 
-                lexeme[i + 3] == 'l' && 
-                lexeme[i + 4] == 'e' &&
-                lexeme[i + 5] == '\0') {
-                *type = WHILE_TOKEN;
-                return 1;  // Matched 'while'
-            }
-            break;
-        default:
-        	return 0;
-    }
-    return 0;
-}
-
-int isReservedWord(char *lexeme, char ch, int *type) {
-	int i = 0;  // Index for lexeme
-    ch = lexeme[i];  // Start by checking the first character
-
-	switch(ch){
-        case 'b':
-            if (lexeme[i + 1] == 'o' &&
-                lexeme[i + 2] == 'o' &&
-                lexeme[i + 3] == 'l' &&
-                lexeme[i + 4] == '\0') {
-                *type = BOOL_TOKEN;
-                return 1; //matched bool
-            }
-            break;
-
-        case 'c':
-            if (lexeme[i + 1] == 'h' &&
-                lexeme[i + 2] == 'a' &&
-                lexeme[i + 3] == 'r' &&
-                lexeme[i + 4] == '\0') {
-                *type = CHAR_TOKEN;
-                return 1; //matched char
-            }
-            else if (lexeme[i + 1] == 'h' &&
-                lexeme[i + 2] == 'a' &&
-                lexeme[i + 3] == 'i' &&
-                lexeme[i + 4] == 'n' &&
-                lexeme[i + 5] == '\0' ) {
-                *type = CHAIN_TOKEN;
-                return 1; //matched chain
-                }
-            break;
-            
-        case 'i':
-            if (lexeme[i + 1] == 'n' &&
-                lexeme[i + 2] == 't' &&
-                lexeme[i + 3] == '\0') {
-                *type = INT_TOKEN;
-                return 1; //matched int
-            }
-            break;
-
-        case 'f':
-            if (lexeme[i + 1] == 'l' &&
-                lexeme[i + 2] == 'o' &&
-                lexeme[i + 3] == 'a' &&
-                lexeme[i + 4] == 't' &&
-                lexeme[i + 5] == '\0') {
-                *type = FLOAT_TOKEN;
-                return 1; //matched float
-            }
-            else if (lexeme[i + 1] == 'a' &&
-                lexeme[i + 2] == 'l' &&
-                lexeme[i + 3] == 's' &&
-                lexeme[i + 4] == 'e' &&
-                lexeme[i + 5] == '\0') {
-                *type = FALSE_TOKEN;
-                return 1;
-                }
-            break;
-
-        case 't':
-            if(lexeme[i + 1] == 'r' &&
-                lexeme[i + 2] == 'u' &&
-                lexeme[i + 3] == 'e' &&
-                lexeme[i + 4] == '\0') {
-                *type = TRUE_TOKEN;
-                return 1;
-                }
-               break;
-    }
-    return 0;  // Not a reserved word
-}
-
 int isDelimiter(char ch, int *type) {
 	switch (ch) {
         case ';':
@@ -767,6 +455,815 @@ int isOperator(char *lexeme, char ch, int *type, FILE *file) {
     	default:
     		return 0; // not an operator
 	}
+}
+
+int isKeywordReservedword(Token *token, Token *tokens, char *lexeme, char ch, int *type, FILE *file) {
+    int notKeyReserveWord = 0;
+    
+    
+    switch(ch) {
+        case 'b':
+            ch = getc(file);
+            if(ch == 'e') {
+                lexeme[lexeme_index++] = ch;
+                ch = getc(file);
+                if(ch == 'e') {
+                    lexeme[lexeme_index++] = ch;
+                    ch = getc(file);
+                    if(ch == 'g') {
+                        lexeme[lexeme_index++] = ch;
+                        ch = getc(file);
+                        if(ch == 'i') {
+                            lexeme[lexeme_index++] = ch;
+                            ch = getc(file);
+                            if(ch == 'n') {
+                                lexeme[lexeme_index++] = ch;
+                                ch = getc(file);
+                                if(isspace(ch) || ch == '\n' || ispunct(ch) || ch == EOF) { //beegin
+                                    lexeme[lexeme_index] = '\0';
+                                    ungetc(ch, file);
+                                    *type = BEEGIN_TOKEN;
+                                    return 1;
+                                } else {
+                                    notKeyReserveWord = 1;
+                                }
+                            } else {
+                                notKeyReserveWord = 1;
+                            }
+                        } else if(ch == 'o') {
+                            lexeme[lexeme_index++] = ch;
+                            ch = getc(file);
+                            if(ch == 'n') {
+                                lexeme[lexeme_index++] = ch;
+                                ch = getc(file);
+                                if(ch == 'e') {
+                                    lexeme[lexeme_index++] = ch;
+                                    ch = getc(file);
+                                    if(isspace(ch) || ch == '\n' || ispunct(ch) || ch == EOF) {
+                                        lexeme[lexeme_index] = '\0';
+                                        ungetc(ch, file);
+                                        *type = BEEGONE_TOKEN;
+                                        return 1;
+                                    } else {
+                                        notKeyReserveWord = 1;
+                                    }
+                                } else {
+                                    notKeyReserveWord = 1; 
+                                }
+                            } else {
+                                notKeyReserveWord = 1;
+                            }  
+                        } else {
+                            notKeyReserveWord = 1;
+                        }
+                    } else {
+                        notKeyReserveWord = 1;
+                    }
+                } else {
+                    notKeyReserveWord = 1;
+                }
+            } else if(ch == 'o') {
+                lexeme[lexeme_index++] = ch;
+                ch = getc(file);
+                if(ch == 'o') {
+                    lexeme[lexeme_index++] = ch;
+                    ch = getc(file);
+                    if(ch == 'l') {
+                        lexeme[lexeme_index++] = ch;
+                        ch = getc(file);
+                        if(isspace(ch) || ch == '\n' || ispunct(ch) || ch == EOF) {
+                            lexeme[lexeme_index] = '\0';
+                            ungetc(ch, file);
+                            *type = BOOL_TOKEN;
+                            return 1;
+                        } else {
+                            notKeyReserveWord = 1;
+                        }
+                    } else {
+                        notKeyReserveWord = 1;
+                    }
+                } else {
+                    notKeyReserveWord = 1;
+                }
+            } else if(ch == 'u') {
+                lexeme[lexeme_index++] = ch;
+                ch = getc(file);
+                if(ch == 'z') {
+                    lexeme[lexeme_index++] = ch;
+                    ch = getc(file);
+                    if(ch == 'z') {
+                        lexeme[lexeme_index++] = ch;
+                        ch = getc(file);
+                        if(isspace(ch) || ch == '\n' || ispunct(ch) || ch == EOF) {
+                            lexeme[lexeme_index] = '\0';
+                            ungetc(ch, file);
+                            *type = BUZZ_TOKEN;
+                            return 1;
+                        } else if(ch == 'o') {
+                            lexeme[lexeme_index++] = ch;
+                            ch = getc(file);
+                            if(ch == 'u') {
+                                lexeme[lexeme_index++] = ch;
+                                ch = getc(file);
+                                if(ch == 't') {
+                                    lexeme[lexeme_index++] = ch;
+                                    ch = getc(file);
+                                    if(isspace(ch) || ch == '\n' || ispunct(ch) || ch == EOF) {
+                                        lexeme[lexeme_index] = '\0';
+                                        ungetc(ch, file);
+                                        *type = BUZZOUT_TOKEN;
+                                        return 1;
+                                    } else {
+                                        notKeyReserveWord = 1;
+                                    }
+                                } else {
+                                    notKeyReserveWord = 1;
+                                }
+                            } else {
+                                notKeyReserveWord = 1;
+                            }
+                        } else {
+                            notKeyReserveWord = 1;
+                        }
+                    } else {
+                        notKeyReserveWord = 1;
+                    }
+                } else {
+                    notKeyReserveWord = 1;
+                }
+            } else {
+                notKeyReserveWord = 1;
+            }
+            break;
+        case 'c':
+            ch = getc(file);
+            if(ch == 'a') {
+                lexeme[lexeme_index++] = ch;
+                ch = getc(file);
+                if(ch == 's') {
+                    lexeme[lexeme_index++] = ch;
+                    ch = getc(file);
+                    if(ch == 'e') {
+                        lexeme[lexeme_index++] = ch;
+                        ch = getc(file);
+                        if(isspace(ch) || ch == '\n' || ispunct(ch) || ch == EOF) {
+                            lexeme[lexeme_index] = '\0';
+                            ungetc(ch, file);
+                            *type = CASE_TOKEN;
+                            return 1;
+                        }
+                    } else {
+                        notKeyReserveWord = 1;
+                    }
+                } else {
+                        notKeyReserveWord = 1;
+                }
+            } else if(ch == 'h') {
+                lexeme[lexeme_index++] = ch;
+                ch = getc(file);
+                if(ch == 'a') {
+                    lexeme[lexeme_index++] = ch;
+                    ch = getc(file);
+                    if(ch == 'i') {
+                        lexeme[lexeme_index++] = ch;
+                        ch = getc(file);
+                        if(ch == 'n') {
+                            lexeme[lexeme_index++] = ch;
+                            ch = getc(file);
+                            if(isspace(ch) || ch == '\n' || ispunct(ch) || ch == EOF) {
+                                lexeme[lexeme_index] = '\0';
+                                ungetc(ch, file);
+                                *type = CHAIN_TOKEN;
+                                return 1;
+                            }
+                        } else {
+                            notKeyReserveWord = 1;
+                        }
+                    } else if(ch == 'r') {
+                        lexeme[lexeme_index++] = ch;
+                        ch = getc(file);
+                        if(isspace(ch) || ch == '\n' || ispunct(ch) || ch == EOF) {
+                            lexeme[lexeme_index] = '\0';
+                            ungetc(ch, file);
+                            *type = CHAR_TOKEN;
+                            return 1;
+                        } else {
+                            notKeyReserveWord = 1;
+                        }
+                    } else {
+                        notKeyReserveWord = 1;
+                    }
+                } else {
+                    notKeyReserveWord = 1;
+                }
+            } else {
+                notKeyReserveWord = 1;
+            }
+            break;
+        case 'd':
+            ch = getc(file);
+            if(ch == 'e') {
+                lexeme[lexeme_index++] = ch;
+                ch = getc(file);
+                if(ch == 'f') {
+                    lexeme[lexeme_index++] = ch;
+                    ch = getc(file);
+                    if(ch == 'a') {
+                        lexeme[lexeme_index++] = ch;
+                        ch = getc(file);
+                        if(ch == 'u') {
+                            lexeme[lexeme_index++] = ch;
+                            ch = getc(file);
+                            if(ch == 'l') {
+                                lexeme[lexeme_index++] = ch;
+                                ch = getc(file);
+                                if(ch == 't') {
+                                    lexeme[lexeme_index++] = ch;
+                                    ch = getc(file);
+                                    if(isspace(ch) || ch == '\n' || ispunct(ch) || ch == EOF) {
+                                        lexeme[lexeme_index] = '\0';
+                                        ungetc(ch, file);
+                                        *type = DEFAULT_TOKEN;
+                                        return 1;
+                                    }
+                                } else {
+                                    notKeyReserveWord = 1;
+                                }
+                            }  else {
+                                notKeyReserveWord = 1;
+                            }
+                        } else {
+                            notKeyReserveWord = 1;
+                        }
+                    } else {
+                        notKeyReserveWord = 1;
+                    }
+                } else {
+                    notKeyReserveWord = 1;
+                }
+            } else if(ch == 'o') {
+                lexeme[lexeme_index++] = ch;
+                ch = getc(file);
+                if(isspace(ch) || ch == '\n' || ispunct(ch) || ch == EOF) {
+                    lexeme[lexeme_index] = '\0';
+                    ungetc(ch, file);
+                    *type = DO_TOKEN;
+                    return 1;
+                }
+            } else {
+                notKeyReserveWord = 1;
+            }
+            break;
+        case 'e':
+            ch = getc(file);
+            if(ch == 'l') {
+                lexeme[lexeme_index++] = ch;
+                ch = getc(file);
+                if(ch == 's') {
+                    lexeme[lexeme_index++] = ch;
+                    ch = getc(file);
+                    if(ch == 'e') {
+                        lexeme[lexeme_index++] = ch;
+                        ch = getc(file);
+                        if(isspace(ch) || ch == '\n' || ispunct(ch) || ch == EOF) {
+                            lexeme[lexeme_index] = '\0';
+                            ungetc(ch, file);
+                            *type = ELSE_TOKEN;
+                            return 1;
+                        } else if (ch == 'i') {
+                            lexeme[lexeme_index++] = ch;
+                            ch = getc(file);
+                            if(ch == 'f') {
+                                lexeme[lexeme_index++] = ch;
+                                ch = getc(file);
+                                if(isspace(ch) || ch == '\n' || ispunct(ch) || ch == EOF) {
+                                    lexeme[lexeme_index] = '\0';
+                                    ungetc(ch, file);
+                                    *type = ELSEIF_TOKEN;
+                                    return 1;
+                                } else {
+                                    notKeyReserveWord = 1;
+                                }
+                            } else {
+                                notKeyReserveWord = 1;
+                            }
+                        } else {
+                            notKeyReserveWord = 1;
+                        }
+                    } else {
+                        notKeyReserveWord = 1;
+                    }
+                } else {
+                    notKeyReserveWord = 1;
+                }
+            } else {
+                notKeyReserveWord = 1;
+            }
+            break;
+        case 'f':
+            ch = getc(file);
+            if(ch == 'a') {
+                lexeme[lexeme_index++] = ch;
+                ch = getc(file);
+                if(ch == 'l') {
+                    lexeme[lexeme_index++] = ch;
+                    ch = getc(file);
+                    if(ch == 's') {
+                        lexeme[lexeme_index++] = ch;
+                        ch = getc(file);
+                        if(ch == 'e') {
+                            lexeme[lexeme_index++] = ch;
+                            ch = getc(file);
+                            if(isspace(ch) || ch == '\n' || ispunct(ch) || ch == EOF) {
+                                lexeme[lexeme_index] = '\0';
+                                ungetc(ch, file);
+                                *type = FALSE_TOKEN;
+                                return 1;
+                            } else {
+                                notKeyReserveWord = 1;
+                            }
+                        } else {
+                            notKeyReserveWord = 1;
+                        }
+                    } else {
+                        notKeyReserveWord = 1;
+                    }
+                } else {
+                    notKeyReserveWord = 1;
+                }
+            } else if(ch == 'l') {
+                lexeme[lexeme_index++] = ch;
+                ch = getc(file);
+                if(ch == 'o') {
+                    lexeme[lexeme_index++] = ch;
+                    ch = getc(file);
+                    if(ch == 'a') {
+                        lexeme[lexeme_index++] = ch;
+                        ch = getc(file);
+                        if(ch == 't') {
+                            lexeme[lexeme_index++] = ch;
+                            ch = getc(file);
+                            if(isspace(ch) || ch == '\n' || ispunct(ch) || ch == EOF) {
+                                lexeme[lexeme_index] = '\0';
+                                ungetc(ch, file);
+                                *type = FLOAT_TOKEN;
+                                return 1;
+                            } else {
+                                notKeyReserveWord = 1;
+                            }
+                        } else {
+                            notKeyReserveWord = 1;
+                        }
+                    } else {
+                        notKeyReserveWord = 1;
+                    }
+                } else {
+                    notKeyReserveWord = 1;
+                }
+            } else if(ch == 'o') {
+                lexeme[lexeme_index++] = ch;
+                ch = getc(file);
+                if(ch == 'r') {
+                    lexeme[lexeme_index++] = ch;
+                    ch = getc(file);
+                    if(isspace(ch) || ch == '\n' || ispunct(ch) || ch == EOF) {
+                        lexeme[lexeme_index] = '\0';
+                        ungetc(ch, file);
+                        *type = FOR_TOKEN;
+                        return 1;
+                    }
+                } else {
+                    notKeyReserveWord = 1;
+                }
+            } else {
+                    notKeyReserveWord = 1;
+            }
+            break;
+        case 'g':
+            ch = getc(file);
+            if(ch == 'a') {
+                lexeme[lexeme_index++] = ch;
+                ch = getc(file);
+                if(ch == 't') {
+                    lexeme[lexeme_index++] = ch;
+                    ch = getc(file);
+                    if(ch == 'h') {
+                        lexeme[lexeme_index++] = ch;
+                        ch = getc(file);
+                        if(ch == 'e') {
+                            lexeme[lexeme_index++] = ch;
+                            ch = getc(file);
+                            if(ch == 'r') {
+                                lexeme[lexeme_index++] = ch;
+                                ch = getc(file);
+                                    if(isspace(ch) || ch == '\n' || ispunct(ch) || ch == EOF) {
+                                        lexeme[lexeme_index] = '\0';
+                                        ungetc(ch, file);
+                                        *type = GATHER_TOKEN;
+                                        return 1;
+                                    } else {
+                                        notKeyReserveWord = 1;
+                                    }
+                            } else {
+                                notKeyReserveWord = 1;
+                            }
+                        } else {
+                            notKeyReserveWord = 1;
+                        }
+                    } else {
+                        notKeyReserveWord = 1;
+                    }
+                } else {
+                    notKeyReserveWord = 1;
+                }
+            } 
+            break;
+        case 'i':
+            ch = getc(file);
+            if(ch == 'f') {
+                lexeme[lexeme_index++] = ch;
+                ch = getc(file);
+                if(isspace(ch) || ch == '\n' || ispunct(ch) || ch == EOF) {
+                    lexeme[lexeme_index] = '\0';
+                    ungetc(ch, file);
+                    *type = IF_TOKEN;
+                    return 1;
+                } else {
+                    notKeyReserveWord = 1;
+                }
+            } else if(ch == 'n') {
+                lexeme[lexeme_index++] = ch;
+                ch = getc(file);
+                if(ch == 't') {
+                    lexeme[lexeme_index++] = ch;
+                    ch = getc(file);
+                    if(isspace(ch) || ch == '\n' || ispunct(ch) || ch == EOF) {
+                        lexeme[lexeme_index] = '\0';
+                        ungetc(ch, file);
+                        *type = INT_TOKEN;
+                        return 1;
+                    }
+                } else {
+                    notKeyReserveWord = 1;
+                }
+            }
+            break;
+        case 'h':
+            ch = getc(file);
+            if(ch == 'i') {
+                lexeme[lexeme_index++] = ch;
+                ch = getc(file);
+                if(ch == 'v') {
+                    lexeme[lexeme_index++] = ch;
+                    ch = getc(file);
+                    if(ch == 'e') {
+                        lexeme[lexeme_index++] = ch;
+                        ch = getc(file);
+                        if(isspace(ch) || ch == '\n' || ispunct(ch) || ch == EOF) {
+                            lexeme[lexeme_index] = '\0';
+                            ungetc(ch, file);
+                            *type = HIVE_TOKEN;
+                            return 1;
+                        } else {
+                            notKeyReserveWord = 1;
+                        }
+                    } else {
+                        notKeyReserveWord = 1;
+                    }
+                } else {
+                    notKeyReserveWord = 1;
+                }
+            } else if(ch == 'o') {
+                lexeme[lexeme_index++] = ch;
+                ch = getc(file);
+                if(ch == 'v') {
+                    lexeme[lexeme_index++] = ch;
+                    ch = getc(file);
+                    if(ch == 'e') {
+                        lexeme[lexeme_index++] = ch;
+                        ch = getc(file);
+                        if(ch == 'r') {
+                            lexeme[lexeme_index++] = ch;
+                            ch = getc(file);
+                            if(isspace(ch) || ch == '\n' || ispunct(ch) || ch == EOF) {
+                                lexeme[lexeme_index] = '\0';
+                                ungetc(ch, file);
+                                *type = HOVER_TOKEN;
+                                return 1;
+                            } else {
+                                notKeyReserveWord = 1;
+                            }
+                        } else {
+                            notKeyReserveWord = 1;
+                        }
+                    } else {
+                        notKeyReserveWord = 1;
+                    }
+                } else {
+                    notKeyReserveWord = 1;
+                }
+            } 
+            break;
+        case 'q':
+            ch = getc(file);
+            if(ch == 'u') {
+                lexeme[lexeme_index++] = ch;
+                ch = getc(file);
+                if(ch == 'e') {
+                    lexeme[lexeme_index++] = ch;
+                    ch = getc(file);
+                    if(ch == 'e') {
+                        lexeme[lexeme_index++] = ch;
+                        ch = getc(file);
+                        if(ch == 'n') {
+                            lexeme[lexeme_index++] = ch;
+                            ch = getc(file);
+                            if(ch == 'b') {
+                                lexeme[lexeme_index++] = ch;
+                                ch = getc(file);
+                                if(ch == 'e') {
+                                    lexeme[lexeme_index++] = ch;
+                                    ch = getc(file);
+                                        if(ch == 'e') {
+                                            lexeme[lexeme_index++] = ch;
+                                            ch = getc(file);
+                                            if(isspace(ch) || ch == '\n' || ispunct(ch) || ch == EOF) {
+                                                lexeme[lexeme_index] = '\0';
+                                                ungetc(ch, file);
+                                                *type = QUEENBEE_TOKEN;
+                                                return 1;
+                                            }
+                                        } else {
+                                            notKeyReserveWord = 1;
+                                        }
+                                } else {
+                                    notKeyReserveWord = 1;
+                                }
+                            }  else {
+                                notKeyReserveWord = 1;
+                            }
+                        } else {
+                            notKeyReserveWord = 1;
+                        }
+                    } else {
+                        notKeyReserveWord = 1;
+                    }
+                } else {
+                    notKeyReserveWord = 1;
+                }
+            }
+            break;
+        case 'r': // return
+            ch = getc(file);
+            if(ch == 'e') {
+                lexeme[lexeme_index++] = ch;
+                ch = getc(file);
+                if(ch == 't') {
+                    lexeme[lexeme_index++] = ch;
+                    ch = getc(file);
+                    if(ch == 'u') {
+                        lexeme[lexeme_index++] = ch;
+                        ch = getc(file);
+                        if(ch == 'r') {
+                            lexeme[lexeme_index++] = ch;
+                            ch = getc(file);
+                            if(ch == 'n') {
+                                lexeme[lexeme_index++] = ch;
+                                ch = getc(file);
+                                if(isspace(ch) || ch == '\n' || ispunct(ch) || ch == EOF) {
+                                    lexeme[lexeme_index] = '\0';
+                                    ungetc(ch, file);
+                                    *type = RETURN_TOKEN;
+                                    return 1;
+                                } else if(ch == 'v') {
+                                    lexeme[lexeme_index++] = ch;
+                                    ch = getc(file);
+                                    if(ch == 'a') {
+                                        lexeme[lexeme_index++] = ch;
+                                        ch = getc(file);
+                                        if(ch == 'l') {
+                                            lexeme[lexeme_index++] = ch;
+                                            ch = getc(file);
+                                            if(ch == 'u') {
+                                                lexeme[lexeme_index++] = ch;
+                                                ch = getc(file);
+                                                    if(ch == 'e') {
+                                                        lexeme[lexeme_index++] = ch;
+                                                        ch = getc(file);
+                                                        if(isspace(ch) || ch == '\n' || ispunct(ch) || ch == EOF) {
+                                                            strcpy(lexeme, "return"); // store "return" as token first
+                                                            lexeme_index = 6;
+                                                            *type = RETURN_TOKEN;
+                                                            storeToken(token, tokens, lexeme, *type);
+                                                            
+                                                            strcpy(lexeme, "value"); // store "value" noise word
+                                                            lexeme_index = 5;
+                                                            token = malloc(sizeof(Token));;
+                                                            *type = NOISE_WORD;
+                                                            return 1;
+                                                        }
+                                                    } else {
+                                                        notKeyReserveWord = 1;
+                                                    }
+                                            } else {
+                                                notKeyReserveWord = 1;
+                                            }
+                                        }  else {
+                                            notKeyReserveWord = 1;
+                                        }
+                                    } else {
+                                        notKeyReserveWord = 1;
+                                    }
+                                } else {
+                                    notKeyReserveWord = 1;
+                                }
+                            }  else {
+                                notKeyReserveWord = 1;
+                            }
+                        } else {
+                            notKeyReserveWord = 1;
+                        }
+                    } else {
+                        notKeyReserveWord = 1;
+                    }
+                } else {
+                    notKeyReserveWord = 1;
+                }
+            }
+            break;
+
+        case 'w':       // while
+            ch = getc(file);
+            if (ch == 'h') {
+                lexeme[lexeme_index++] = ch;
+                ch = getc(file);
+                if (ch == 'i') {
+                    lexeme[lexeme_index++] = ch;
+                    ch = getc(file);
+                    if (ch == 'l') {
+                        lexeme[lexeme_index++] = ch;
+                        ch = getc(file);
+                        if (ch == 'e') {
+                            lexeme[lexeme_index++] = ch;
+                            ch = getc(file);
+                            if(isspace(ch) || ch == '\n' || ispunct(ch) || ch == EOF) {
+                                lexeme[lexeme_index] = '\0';
+                                ungetc(ch, file);
+                                *type = WHILE_TOKEN;
+                                return 1;
+                            } else {
+                                notKeyReserveWord = 1;
+                            }
+                        } else {
+                            notKeyReserveWord = 1;
+                        }
+                    } else {
+                        notKeyReserveWord = 1;
+                    }
+                } else {
+                    notKeyReserveWord = 1;
+                }
+            } else {
+                notKeyReserveWord = 1;
+            }
+            break;
+        
+        case 's':
+            ch = getc(file);
+            if (ch == 't') {
+                lexeme[lexeme_index++] = ch;
+                ch = getc(file);
+                if (ch == 'i') {
+                    lexeme[lexeme_index++] = ch;
+                    ch = getc(file);
+                    if (ch == 'n') {
+                        lexeme[lexeme_index++] = ch;
+                        ch = getc(file);
+                        if (ch == 'g') {
+                            if(isspace(ch) || ch == '\n' || ispunct(ch) || ch == EOF) {
+                                lexeme[lexeme_index] = '\0';
+                                ungetc(ch, file);
+                                *type = STING_TOKEN;
+                                return 1;
+                            } else {
+                                notKeyReserveWord = 1;
+                            }
+                        } else {
+                            notKeyReserveWord = 1;
+                        }
+                    } else {
+                        notKeyReserveWord = 1;
+                    }
+                } else {
+                    notKeyReserveWord = 1;
+                }
+            } else if (ch == 'w') {
+                lexeme[lexeme_index++] = ch;
+                ch = getc(file);
+                if (ch == 'i') {
+                    lexeme[lexeme_index++] = ch;
+                    ch = getc(file);
+                    if (ch == 't') {
+                        lexeme[lexeme_index++] = ch;
+                        ch = getc(file);
+                        if (ch == 'c') {
+                            lexeme[lexeme_index++] = ch;
+                            ch = getc(file);
+                            if (ch == 'h') {
+                                if(isspace(ch) || ch == '\n' || ispunct(ch) || ch == EOF) {
+                                    lexeme[lexeme_index] = '\0';
+                                    ungetc(ch, file);
+                                    *type = SWITCH_TOKEN;
+                                    return 1;
+                                } else {
+                                    notKeyReserveWord = 1;
+                                }
+                            } else {
+                                notKeyReserveWord = 1;
+                            }
+                        } else {
+                            notKeyReserveWord = 1;
+                        }
+                    } else {
+                        notKeyReserveWord = 1;
+                    }
+                } else {
+                    notKeyReserveWord = 1;
+                }
+            } else {
+                notKeyReserveWord = 1;
+            }
+            break;
+        case 't':
+            ch = getc(file);
+            if (ch == 'r') {
+                lexeme[lexeme_index++] = ch;
+                ch = getc(file);
+                if (ch == 'u') {
+                    lexeme[lexeme_index++] = ch;
+                    ch = getc(file);
+                    if (ch == 'e') {
+                        lexeme[lexeme_index++] = ch;
+                        ch = getc(file);
+                        if(isspace(ch) || ch == '\n' || ispunct(ch) || ch == EOF) {
+                            lexeme[lexeme_index] = '\0';
+                            ungetc(ch, file);
+                            *type = TRUE_TOKEN;
+                            return 1;
+                        } else {
+                            notKeyReserveWord = 1;
+                        }
+                    } else {
+                        notKeyReserveWord = 1;
+                    }
+                } else {
+                    notKeyReserveWord = 1;
+                }
+            } else {
+                notKeyReserveWord = 1;
+            }
+            break;
+        default: 
+            ch = getc(file);
+            while(isalpha(ch) && ch != '\n' && ch != EOF) {
+                    lexeme[lexeme_index++] = ch;
+                    ch = getNextChar(file);
+            } 
+                    
+            if(isdigit(ch)) {
+                while(!(isspace(ch)) && ch != '\n' && ch != EOF) {
+                    lexeme[lexeme_index++] = ch;
+                    ch = getNextChar(file);
+                }
+            }
+                    
+            lexeme[lexeme_index] = '\0';
+            *type = INVALID;
+            ungetc(ch, file);
+            return 0;
+            
+    }
+
+    if(notKeyReserveWord == 1) { // not a keyword or reserved word, take the entire invalid string
+            while(isalpha(ch) && ch != '\n' && ch != EOF) {
+                    lexeme[lexeme_index++] = ch;
+                    ch = getNextChar(file);
+            } 
+                    
+            if(isdigit(ch)) { // takes lexemes beginning with letters but containing numbers
+                while(!(isspace(ch)) && ch != '\n' && ch != EOF) {
+                    lexeme[lexeme_index++] = ch;
+                    ch = getNextChar(file);
+                }
+            }
+                    
+            lexeme[lexeme_index] = '\0';
+            *type = INVALID;
+            ungetc(ch, file);
+            return 0;
+    } else {
+        return 1;
+    }
 }
 
 // return any character including spaces or newlines

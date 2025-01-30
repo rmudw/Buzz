@@ -23,7 +23,7 @@ void initOutputFile(const char *filename);
 
 Node *parseProgram(Token *tokens);
 Node *parseMainFuntion();
-Node *parseDeclarations();
+Node *parseDeclaration();
 Node *parseDeclarationStmt();
 Node *parseFuncDeclaration();
 Node *parseStmt();
@@ -48,9 +48,13 @@ Node *parseValue();
 Node *parseArrayDeclaration();
 Node *parseArgument();
 Node *parseIfStmt();
-Node *parsElseIfStmt();
+Node *parseElseIfStmt();
 Node *parseElseStmt();
 Node *parseSwitchStmt();
 Node *parseCaseClause();
+Node *parseWhile();
+Node *parseDoWhile();
+Node *parseForLoop();
+Node *parseReturnStmt();
 
 #endif

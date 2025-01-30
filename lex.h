@@ -56,6 +56,7 @@ int isReservedWord(char *lexeme, char ch, int *type);
 int isIdentifier(char *lexeme, char ch, int *type, FILE *file);
 int isDelimiter(char ch, int *type);
 int isOperator(char *lexeme, char ch, int *type, FILE *file);
+int isKeywordReservedword(Token *token, Token *tokens, char *lexeme, char ch, int *type, FILE *file);
 char getNextChar(FILE *file);
 char getNonBlank(FILE *file);
 void storeToken(Token *token, Token *tokens, char *lexeme, int type);

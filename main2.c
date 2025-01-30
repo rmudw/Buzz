@@ -9,7 +9,7 @@
 const char* VALID_EXTENSION = ".bz";
 
 void writeToken(Token *tokens, FILE *outputFile) {
-    printf("| %-10s | %-25s | %-30s |\n", "LINE", "LEXEME", "TOKEN TYPE");
+    //printf("| %-10s | %-25s | %-30s |\n", "LINE", "LEXEME", "TOKEN TYPE");
 	fprintf(outputFile, "| %-10s | %-25s | %-30s |\n", "LINE", "LEXEME", "TOKEN TYPE");
 
     char *token_type[] = {
@@ -37,7 +37,7 @@ void writeToken(Token *tokens, FILE *outputFile) {
 
     int i = 0;
     while(tokens[i].type != END_OF_TOKENS) {
-        printf("| %-10d | %-25s | %-30s |\n", tokens[i].line, tokens[i].value, token_type[tokens[i].type]);
+        //printf("| %-10d | %-25s | %-30s |\n", tokens[i].line, tokens[i].value, token_type[tokens[i].type]);
         fprintf(outputFile, "| %-10d | %-25s | %-30s |\n", tokens[i].line, tokens[i].value, token_type[tokens[i].type]);
         i++; 
     }
@@ -53,7 +53,7 @@ void check_file_type(const char* filename, const char* expectedExtension) {
 }
 
 int main() {
-    const char *fileName = "test.bz";         // Hardcoded input file name
+    const char *fileName = "sc.bz";         // Hardcoded input file name
     const char *outputName = "SymbolTable.bz"; // Hardcoded output file name
 
     // Check extensions
